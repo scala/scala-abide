@@ -3,34 +3,43 @@ import Keys._
 
 object AbideBuild extends Build {
 
-  lazy val abide = Project("abide-core", file("src/abide")).settings(
-    scalaVersion := "2.11.0",
-    // crossScalaVersions := Seq("2.10.4", "2.11.0"),
-    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _),
-    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _),
-    libraryDependencies += ("org.scalatest" %% "scalatest" % "2.1.7" % "test"
-      excludeAll(ExclusionRule(organization="org.scala-lang"))),
-    libraryDependencies := {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        // if scala 2.11+ is used, quasiquotes are merged into scala-reflect
-        case Some((2, scalaMajor)) if scalaMajor >= 11 => libraryDependencies.value
-
-        // in Scala 2.10, quasiquotes are provided by macro paradise
-        case Some((2, 10)) => libraryDependencies.value ++ Seq(
-          compilerPlugin("org.scalamacros" % "paradise" % "2.0.0" cross CrossVersion.full),
-          "org.scalamacros" %% "quasiquotes" % "2.0.0" cross CrossVersion.binary
-        )
-      }
-    },
-    scalacOptions ++= Seq("-deprecation", "-feature"),
-    testOptions in Test += Tests.Argument("-oF")
+  lazy val sharedSettings = Seq(
+    organization                    := "com.typesafe",
+    version                         := "0.1-SNAPSHOT",
+    scalaVersion                    := "2.11.1",
+    scalacOptions                  ++= Seq("-deprecation", "-feature"),
+    scalaSource in Test            <<= (baseDirectory in Test)(base => base / "test"),
+    scalaSource in Compile         <<= (baseDirectory in Compile)(base => base / "src"),
+    resourceDirectory in Compile   <<= (baseDirectory in Compile)(base => base / "resources"),
+    libraryDependencies            <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _ % "provided"),
+    libraryDependencies            <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _ % "provided"),
+    publishArtifact in Test         := false
   )
 
-  lazy val rules = Project("abide-rules", file("src/rules")).settings(
-    scalaVersion := "2.11.0",
-    scalacOptions ++= Seq("-deprecation", "-feature"),
-    testOptions in Test += Tests.Argument("-oF")
-  ).dependsOn(abide)
+  lazy val core  = Project("abide-core", file("core")).settings(sharedSettings : _*)
 
-  lazy val root = Project("abide", file("src")).aggregate(abide, rules)
+  lazy val abide = Project("abide", file("abide"))
+    .settings(sharedSettings : _*)
+    .settings(
+      mappings in (Compile, packageBin) ++= (mappings in (core, Compile, packageBin)).value,
+      mappings in (Compile, packageSrc) ++= (mappings in (core, Compile, packageSrc)).value
+    ).dependsOn(core)
+
+  lazy val tests = Project("tests", file("tests"))
+    .settings(sharedSettings : _*)
+    .settings(
+      scalaSource in Test          <<= (baseDirectory in Test)(base => base / "test"),
+      resourceDirectory in Test    <<= (baseDirectory in Test)(base => base / "resources"),
+      libraryDependencies           += ("org.scalatest" %% "scalatest" % "2.1.7" % "test"),
+      testOptions in Test           += Tests.Argument("-oF"),
+      packagedArtifacts             := Map.empty
+    ).dependsOn(abide)
+
+  lazy val root  = Project("root", file("."))
+    .settings(sharedSettings : _*)
+    .settings(
+      test in Test                  := (test in tests in Test).value,
+      packagedArtifacts             := Map.empty
+    ).aggregate(core, abide, tests)
+
 }
