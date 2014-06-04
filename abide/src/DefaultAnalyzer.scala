@@ -4,13 +4,12 @@ import scala.tools.nsc._
 
 import directives._
 import traversal._
-import rules._
 
-class DefaultAnalyzer(val global : Global) extends Analyzer with MutabilityChecker {
+class DefaultAnalyzer(val global : Global) extends Analyzer with TraversalAnalyzer with MutabilityChecker {
   import global._
 
   val components = Seq(
-    new FastTraversal(this)
+    new TraversalComponent(this)
   )
 
   val rules = Seq(

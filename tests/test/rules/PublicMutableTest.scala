@@ -45,7 +45,7 @@ class PublicMutableTest extends AbideTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).map(_.toString).sorted should be (List("value mut")) }
+    global.ask { () => analyzer(tree).map(_.toString).size should be (1) }
   }
 
   it should "be warned about in public vars" in {
@@ -55,7 +55,7 @@ class PublicMutableTest extends AbideTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).map(_.toString) should be (List("variable a")) }
+    global.ask { () => analyzer(tree).size should be (1) }
   }
 
   it should "be warned about in public mutable vars" in {
@@ -66,7 +66,7 @@ class PublicMutableTest extends AbideTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).map(_.toString) should be (List("variable toto")) }
+    global.ask { () => analyzer(tree).size should be (1) }
   }
 
 }

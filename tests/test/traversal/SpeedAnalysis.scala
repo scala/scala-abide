@@ -1,21 +1,42 @@
 package scala.tools.abide
 package traversal
 
-import rules._
 import org.scalatest.FunSuite
 
-class SpeedAnalysis extends FunSuite with CompilerProvider with TreeProvider {
+class SpeedAnalysis extends FunSuite with TreeProvider with FusingTraversals {
   import global._
   import org.scalatest._
 
   val processorCount = 100
 
-  class ValInsteadOfVar(val analyzer : Analyzer) extends ExistentialRule {
+  def speed(name : String, tree : Tree, traverser : Tree => List[Symbol]) : Long = {
+    val start = System.currentTimeMillis
+    val warnings = try {
+      traverser(tree)
+    } catch {
+      case t : Throwable =>
+        alert("misshap during traversal : " + t.getMessage)
+        Nil
+    }
+    val size = warnings.size
+    val time = System.currentTimeMillis - start
+    info("name: " + name + " -> time="+time + ", warnings="+ size)
+    time
+  }
+
+  class FastTraversalImpl(val analyzer : SpeedAnalysis.this.type) extends SimpleTraversal {
     import analyzer.global._
 
-    type Elem = Symbol
+    type State = Map[Symbol, Boolean]
+    def emptyState : State = Map.empty
 
-    val name = "test-rule"
+    def ok(symbol : Symbol) : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
+      val enter = (state : State) => state + (symbol -> true)
+    }
+
+    def nok(symbol : Symbol) : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
+      val enter = (state : State) => state + (symbol -> state.getOrElse(symbol, false))
+    }
 
     val step = optimize {
       case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>
@@ -25,77 +46,29 @@ class SpeedAnalysis extends FunSuite with CompilerProvider with TreeProvider {
     }
   }
 
-  ignore("Fast traversal speed") {
-    object analyzer extends {
-      val global : SpeedAnalysis.this.global.type = SpeedAnalysis.this.global
-    } with Analyzer {
-      val components = Seq(new FastTraversal(this))
-      val rules = (1 to processorCount).toSeq.map(i => new ValInsteadOfVar(this))
-    }
+  val fastTraverser = fuse((1 to processorCount).map { x => new FastTraversalImpl(this) } : _*)
 
-    analyzer.enableAll
+  def traverseFast(tree : Tree) : List[Symbol] = fastTraverser.traverse(tree).toSeq.flatMap {
+    x => x.asInstanceOf[Map[Symbol, Boolean]].collect { case (a, false) => a }
+  }.toList
 
-    global.ask { () =>
-      val ts1 = System.currentTimeMillis
-      val trees : List[Tree] = fromFolder("/Users/nvoirol/scala/src/library").force.toList
-      var errors = 0
-      val ts = System.currentTimeMillis
-      val warnings = trees.flatMap { tree =>
-        try {
-          analyzer(tree)
-        } catch {
-          case _ : Throwable =>
-            errors += 1
-            Nil
-        }
+  def naiveTraverser(tree : Tree) : Map[Symbol, Boolean] = tree match {
+    case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>
+      varDef.children.map(naiveTraverser(_)).foldLeft(Map(varDef.symbol -> false)) { (all, next) =>
+        (all.keys ++ next.keys).map(k => k -> (all.getOrElse(k, false) || next.getOrElse(k, false))).toMap
       }
-      val time = System.currentTimeMillis - ts
-      info("Fast traversal : compile time="+(ts - ts1) + ", analysis time="+time + ", warnings="+ warnings.size)
-    }
+    case assign @ q"$rcv = $expr" =>
+      assign.children.map(naiveTraverser(_)).foldLeft(Map(rcv.symbol -> true)) { (all, next) =>
+        (all.keys ++ next.keys).map(k => k -> (all.getOrElse(k, false) || next.getOrElse(k, false))).toMap
+      }
+    case tree =>
+      tree.children.map(naiveTraverser(_)).foldLeft(Map.empty[Symbol,Boolean]) { (all, next) =>
+        (all.keys ++ next.keys).map(k => k -> (all.getOrElse(k, false) || next.getOrElse(k, false))).toMap
+      }
   }
 
-  class NaiveValVar {
-    def traverse(tree : Tree) : Map[Symbol, Boolean] = tree match {
-      case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>
-        varDef.children.map(traverse(_)).foldLeft(Map(varDef.symbol -> false)) { (all, next) =>
-          (all.keys ++ next.keys).map(k => k -> (all.getOrElse(k, false) || next.getOrElse(k, false))).toMap
-        }
-      case assign @ q"$rcv = $expr" =>
-        assign.children.map(traverse(_)).foldLeft(Map(rcv.symbol -> true)) { (all, next) =>
-          (all.keys ++ next.keys).map(k => k -> (all.getOrElse(k, false) || next.getOrElse(k, false))).toMap
-        }
-      case tree =>
-        tree.children.map(traverse(_)).foldLeft(Map.empty[Symbol,Boolean]) { (all, next) =>
-          (all.keys ++ next.keys).map(k => k -> (all.getOrElse(k, false) || next.getOrElse(k, false))).toMap
-        }
-    }
-
-    def apply(tree : Tree) : List[Symbol] = {
-      val mapping = traverse(tree)
-      mapping.toList.collect { case (sym, false) => sym }
-    }
-  }
-
-  ignore("Naive traversal speed") {
-    val rules = for (i <- 1 to processorCount) yield new NaiveValVar
-
-    global.ask { () =>
-      val ts1 = System.currentTimeMillis
-      val trees : List[Tree] = fromFolder("/Users/nvoirol/scala/src/library").force.toList
-      var errors = 0
-      val ts = System.currentTimeMillis
-      val warnings = trees.flatMap { tree =>
-        try {
-          rules.flatMap(rule => rule(tree))
-        } catch {
-          case _ : Throwable =>
-            errors += 1
-            Nil
-        }
-      }
-      val time = System.currentTimeMillis - ts
-      info("Naive traversal : compile time="+(ts - ts1) + ", analysis time="+time + ", warnings="+ warnings.size)
-    }
+  def traverseNaive(tree : Tree) : List[Symbol] = {
+    (1 to processorCount).flatMap(x => naiveTraverser(tree).toSeq).collect { case (a,false) => a }.toList
   }
 
   case class ValidationState(map : Map[Symbol, Boolean]) {
@@ -107,46 +80,57 @@ class SpeedAnalysis extends FunSuite with CompilerProvider with TreeProvider {
     }
   }
   
-  class StatefulNaiveValVar {
-    def traverse(tree : Tree) : ValidationState = tree match {
-      case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>
-        varDef.children.map(traverse(_)).foldLeft(ValidationState(Map(varDef.symbol -> false))) { (all, next) =>
-          all merge next
-        }
-      case assign @ q"$rcv = $expr" =>
-        assign.children.map(traverse(_)).foldLeft(ValidationState(Map(rcv.symbol -> true))) { (all, next) =>
-          all merge next
-        }
-      case tree =>
-        tree.children.map(traverse(_)).foldLeft(ValidationState(Map.empty[Symbol,Boolean])) { (all, next) =>
-          all merge next
-        }
-    }
-
-    def apply(tree : Tree) : List[Symbol] = traverse(tree).issues
-  }
-
-  ignore("Stateful naive traversal speed") {
-    val rules = for (i <- 1 to processorCount) yield new StatefulNaiveValVar
-
-    global.ask { () =>
-      val ts1 = System.currentTimeMillis
-      val trees : List[Tree] = fromFolder("/Users/nvoirol/scala/src/library").force.toList
-      var errors = 0
-      val ts = System.currentTimeMillis
-      val warnings = trees.flatMap { tree =>
-        try {
-          rules.flatMap(rule => rule(tree))
-        } catch {
-          case _ : Throwable =>
-            errors += 1
-            Nil
-        }
+  def naiveStatefulTraverser(tree : Tree) : ValidationState = tree match {
+    case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>
+      varDef.children.map(naiveStatefulTraverser(_)).foldLeft(ValidationState(Map(varDef.symbol -> false))) { (all, next) =>
+        all merge next
       }
-      val time = System.currentTimeMillis - ts
-      info("Naive traversal : compile time="+(ts - ts1) + ", analysis time="+time + ", warnings="+ warnings.size)
+    case assign @ q"$rcv = $expr" =>
+      assign.children.map(naiveStatefulTraverser(_)).foldLeft(ValidationState(Map(rcv.symbol -> true))) { (all, next) =>
+        all merge next
+      }
+    case tree =>
+      tree.children.map(naiveStatefulTraverser(_)).foldLeft(ValidationState(Map.empty[Symbol,Boolean])) { (all, next) =>
+        all merge next
+      }
+  }
+
+  def traverseStatefulNaive(tree : Tree) : List[Symbol] = {
+    (1 to processorCount).flatMap(x => naiveStatefulTraverser(tree).issues).toList
+  }
+
+  /*
+  // initialize traversals, they seem to be slow on first run sometimes...
+  val tree = fromFile("traversal/AddressBook.scala")
+  global.ask { () =>
+    traverseFast(tree)
+    traverseNaive(tree)
+    traverseStatefulNaive(tree)
+  }
+  */
+
+  ignore("Fast traversal is fast in AddressBook.scala") {
+    val tree = fromFile("traversal/AddressBook.scala")
+    global.ask { () =>
+      val fastTime = speed("fast", tree, traverseFast)
+      val naiveTime = speed("naive", tree, traverseNaive)
+      val statefulNaiveTime = speed("naiveState", tree, traverseStatefulNaive)
+
+      assert(fastTime < naiveTime, "Fusing should make simple rules at least faster")
+      assert(fastTime < statefulNaiveTime, "Fusing should make simple rules at least faster, also against stateful approach")
     }
   }
 
+  ignore("Fast traversal is fast in SimpleInterpreter.scala") {
+    val tree = fromFile("traversal/SimpleInterpreter.scala")
+    global.ask { () =>
+      val fastTime = speed("fast", tree, traverseFast)
+      val naiveTime = speed("naive", tree, traverseNaive)
+      val statefulNaiveTime = speed("naiveState", tree, traverseStatefulNaive)
+
+      assert(fastTime < naiveTime, "Fusing should make simple rules at least faster")
+      assert(fastTime < statefulNaiveTime, "Fusing should make simple rules at least faster, also against stateful approach")
+    }
+  }
 
 }
