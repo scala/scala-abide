@@ -53,8 +53,8 @@ trait Traversal {
   def emptyState : State
 
   private def fused : FusedTraversal = new FusedTraversal {
-    def traversals = Seq(Traversal.this.asInstanceOf[TraversalType])
-    def emptyStates = Seq(Traversal.this.emptyState)
+    val traversals = Seq(Traversal.this.asInstanceOf[TraversalType])
+    val emptyStates = Seq(Traversal.this.emptyState)
   }
 
   def fuse(traversals : TraversalType*) : FusedTraversal = traversals.foldLeft(fused) {

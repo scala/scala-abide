@@ -9,6 +9,6 @@ import scala.reflect.api._
  * quickfix).
  */
 trait Warning {
-  def pos  : Position
-  def rule : Rule
+  val pos  : Position
+  val rule : Rule
 }

@@ -8,6 +8,7 @@ package scala.tools.abide
  */
 trait AnalysisComponent {
   val analyzer : Analyzer
+  import analyzer._
 
   /** Actual type of rules this component will deal with */
   type RuleType <: Rule

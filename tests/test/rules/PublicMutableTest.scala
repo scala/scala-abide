@@ -2,6 +2,7 @@ package scala.tools.abide
 package rules
 
 class PublicMutableTest extends AbideTest {
+  import scala.tools.abide.traversal._
 
   val analyzer = new DefaultAnalyzer(global).enableOnly("public-mutable-fields")
 
@@ -45,7 +46,10 @@ class PublicMutableTest extends AbideTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).map(_.toString).size should be (1) }
+    global.ask { () =>
+      val syms = analyzer(tree).map(_.asInstanceOf[PublicMutable#Warning].tree.symbol.toString)
+      syms.sorted should be (List("value mut"))
+    }
   }
 
   it should "be warned about in public vars" in {
@@ -55,7 +59,10 @@ class PublicMutableTest extends AbideTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).size should be (1) }
+    global.ask { () =>
+      val syms = analyzer(tree).map(_.asInstanceOf[PublicMutable#Warning].tree.symbol.toString)
+      syms.sorted should be (List("variable a"))
+    }
   }
 
   it should "be warned about in public mutable vars" in {
@@ -66,7 +73,10 @@ class PublicMutableTest extends AbideTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).size should be (1) }
+    global.ask { () =>
+      val syms = analyzer(tree).map(_.asInstanceOf[PublicMutable#Warning].tree.symbol.toString)
+      syms.sorted should be (List("variable toto"))
+    }
   }
 
 }

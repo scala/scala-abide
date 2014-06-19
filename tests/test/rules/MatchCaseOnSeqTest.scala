@@ -2,6 +2,7 @@ package scala.tools.abide
 package rules
 
 class MatchCaseOnSeqTest extends AbideTest {
+  import scala.tools.abide.traversal._
 
   val analyzer = new DefaultAnalyzer(global).enableOnly("match-case-on-seq")
 

@@ -41,7 +41,7 @@ trait Analyzer {
     components.toList.flatMap { component =>
       if (component.analyzer != this)
         scala.sys.error("Analyzer mismatch in component " + component)
-      val ctree = tree.asInstanceOf[component.global.Tree]
+      val ctree = tree.asInstanceOf[component.analyzer.global.Tree]
       component.apply(ctree)
     }
   }

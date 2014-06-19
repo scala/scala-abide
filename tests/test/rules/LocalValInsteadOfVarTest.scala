@@ -2,6 +2,7 @@ package scala.tools.abide
 package rules
 
 class LocalValInsteadOfVarTest extends AbideTest {
+  import scala.tools.abide.traversal._
 
   val analyzer = new DefaultAnalyzer(global).enableOnly("local-val-instead-of-var")
 
@@ -17,7 +18,8 @@ class LocalValInsteadOfVarTest extends AbideTest {
     """)
 
     global.ask { () =>
-      analyzer(tree).map(_.toString).sorted should be (List("variable b", "variable c"))
+      val syms = analyzer(tree).map(_.asInstanceOf[LocalValInsteadOfVar#Warning].tree.symbol.toString)
+      syms.sorted should be (List("variable b", "variable c"))
     }
   }
 

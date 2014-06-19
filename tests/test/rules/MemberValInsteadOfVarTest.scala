@@ -2,6 +2,7 @@ package scala.tools.abide
 package rules
 
 class MemberValInsteadOfVarTest extends AbideTest {
+  import scala.tools.abide.traversal._
 
   val analyzer = new DefaultAnalyzer(global).enableOnly("member-val-instead-of-var")
 
@@ -14,7 +15,8 @@ class MemberValInsteadOfVarTest extends AbideTest {
     """)
 
     global.ask { () =>
-      analyzer(tree).map(_.toString).sorted should be (List("variable a"))
+      val syms = analyzer(tree).map(_.asInstanceOf[MemberValInsteadOfVar#Warning].tree.symbol.toString)
+      syms.sorted should be (List("variable a"))
     }
   }
 

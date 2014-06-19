@@ -5,7 +5,20 @@ package scala.tools.abide
  */
 trait Rule {
   val analyzer : Analyzer
-  
+
+  trait RuleState {
+    def warnings : List[Warning]
+  }
+
+  type State <: RuleState
+
+  trait RuleWarning extends scala.tools.abide.Warning {
+    val rule : Rule = Rule.this
+  }
+
+  type Warning <: RuleWarning
+
   /** We require a name field to manage rules (enable/disable) */
   val name : String
+//  val description : String
 }

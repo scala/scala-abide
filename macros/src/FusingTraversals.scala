@@ -35,10 +35,10 @@ trait FusingTraversals {
   trait FusedTraversal {
 
     /** List of all traversals we're fusing */
-    def traversals : Seq[TraversalType]
+    val traversals : Seq[TraversalType]
 
     /** List of all initial states (same order as the traversals seq */
-    def emptyStates : Seq[_]
+    val emptyStates : Seq[_]
 
     def fuse(that : TraversalType) : FusedTraversal = new FusedTraversal {
       val traversals = FusedTraversal.this.traversals :+ that
@@ -46,8 +46,8 @@ trait FusingTraversals {
     }
 
     def fuse(that : FusedTraversal) : FusedTraversal = new FusedTraversal {
-      def traversals = FusedTraversal.this.traversals ++ that.traversals
-      def emptyStates = FusedTraversal.this.emptyStates ++ that.emptyStates
+      val traversals = FusedTraversal.this.traversals ++ that.traversals
+      val emptyStates = FusedTraversal.this.emptyStates ++ that.emptyStates
     }
 
     /**

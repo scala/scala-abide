@@ -2,6 +2,7 @@ package scala.tools.abide
 package rules
 
 class StupidRecursionTest extends AbideTest {
+  import scala.tools.abide.traversal._
 
   val analyzer = new DefaultAnalyzer(global).enableOnly("stupid-recursion")
 
@@ -12,7 +13,10 @@ class StupidRecursionTest extends AbideTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).size should be (1) }
+    global.ask { () =>
+      val syms = analyzer(tree).map(_.asInstanceOf[StupidRecursion#Warning].tree.symbol.toString)
+      syms.sorted should be (List("method test"))
+    }
   }
 
   it should "should also be identified in local methods" in {
@@ -25,6 +29,25 @@ class StupidRecursionTest extends AbideTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).size should be (1) }
+    global.ask { () =>
+      val syms = analyzer(tree).map(_.asInstanceOf[StupidRecursion#Warning].tree.symbol.toString)
+      syms.sorted should be (List("method rec"))
+    }
+  }
+
+  it should "not be identified in non-direct children" in {
+    val tree = fromString("""
+      class Toto(val a : Int) {
+        trait Titi {
+          val a : Int
+        }
+
+        val titi = new Titi {
+          val a = Toto.this.a
+        }
+      }
+    """)
+
+    global.ask { () => analyzer(tree).isEmpty should be (true) }
   }
 }

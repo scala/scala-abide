@@ -10,13 +10,18 @@ class PublicMutable(val analyzer : TraversalAnalyzer with MutabilityChecker) ext
 
   val name = "public-mutable-fields"
 
+  case class Warning(tree : Tree) extends RuleWarning {
+    val pos = tree.pos
+    val message = s"Mutability should be encapsulated but mutable value $tree is part of the public API"
+  }
+
   val step = optimize {
     case valDef @ q"$mods val $name : $tpt = $value" if !mods.isSynthetic =>
       val getter : Symbol = valDef.symbol.getter
-      if (getter.isPublic && mutable(tpt.tpe)) nok(valDef.pos) else maintain
+      if (getter.isPublic && mutable(tpt.tpe)) nok(Warning(valDef)) else maintain
 
     case varDef @ q"$mods var $name : $tpt = $value" if !mods.isSynthetic =>
       val getter : Symbol = varDef.symbol.getter
-      if (getter.isPublic) nok(varDef.pos) else maintain
+      if (getter.isPublic) nok(Warning(varDef)) else maintain
   }
 }
