@@ -1,10 +1,10 @@
 package scala.tools.abide
 package rules
 
-class LocalValInsteadOfVarTest extends AbideTest {
+class LocalValInsteadOfVarTest extends AnalysisTest {
   import scala.tools.abide.traversal._
 
-  val analyzer = new DefaultAnalyzer(global).enableOnly("local-val-instead-of-var")
+  analyzer.enableOnly("local-val-instead-of-var")
 
   "Definition local vars" should "be vals when not assigned" in {
     val tree = fromString("""

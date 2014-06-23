@@ -14,7 +14,7 @@ class OrderingTest extends AbideTest with FusingTraversals {
 
     type Step = Tree => TraversalStep[Tree, State]
 
-    def apply(tree : Tree, state : State) : Option[(State, Option[State => State])] = {
+    def apply(tree : Tree, state : List[Tree]) : Option[(State, Option[State => State])] = {
       val stepped = step.apply(tree)
       Some(stepped.enter(state) -> stepped.leave)
     }

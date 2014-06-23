@@ -1,6 +1,7 @@
 package scala.tools.abide
 
 import scala.tools.nsc._
+import presentation._
 
 /**
  * Analyzer
@@ -36,11 +37,10 @@ trait Analyzer {
     enable(rules.map(_.name) : _*)
   }
 
-  def apply[T <: Global#Tree](tree : T) : List[Warning] = {
-    if (!tree.isInstanceOf[global.Tree]) scala.sys.error("Compiler mismatch in Analyzer")
-    components.toList.flatMap { component =>
-      if (component.analyzer != this)
-        scala.sys.error("Analyzer mismatch in component " + component)
+  def apply(tree : global.Tree) : List[Warning] = components.toList.flatMap {
+    component => if (component.analyzer != this) {
+      scala.sys.error("Analyzer mismatch in component " + component)
+    } else {
       val ctree = tree.asInstanceOf[component.analyzer.global.Tree]
       component.apply(ctree)
     }

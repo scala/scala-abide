@@ -86,6 +86,12 @@ trait FusingTraversals {
       (classToTraversals, allClassTraversals)
     }
 
+    def force : this.type = {
+      classToTraversals
+      allClassTraversals
+      this
+    }
+
     private def getTraversals(clazz : Class[_]) : List[TraversalType] = {
       (classToTraversals.getOrElse(clazz, Nil) ++ allClassTraversals).toList
     }

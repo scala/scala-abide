@@ -46,7 +46,7 @@ class SpeedAnalysis extends FunSuite with TreeProvider with FusingTraversals {
     }
   }
 
-  val fastTraverser = fuse((1 to processorCount).map { x => new FastTraversalImpl(this) } : _*)
+  val fastTraverser = fuse((1 to processorCount).map { x => new FastTraversalImpl(this) } : _*).force
 
   def traverseFast(tree : Tree) : List[Symbol] = fastTraverser.traverse(tree).toSeq.flatMap {
     x => x.asInstanceOf[Map[Symbol, Boolean]].collect { case (a, false) => a }
@@ -109,27 +109,27 @@ class SpeedAnalysis extends FunSuite with TreeProvider with FusingTraversals {
   }
   */
 
-  ignore("Fast traversal is fast in AddressBook.scala") {
+  test("Fast traversal is fast in AddressBook.scala") {
     val tree = fromFile("traversal/AddressBook.scala")
     global.ask { () =>
       val fastTime = speed("fast", tree, traverseFast)
       val naiveTime = speed("naive", tree, traverseNaive)
       val statefulNaiveTime = speed("naiveState", tree, traverseStatefulNaive)
 
-      assert(fastTime < naiveTime, "Fusing should make simple rules at least faster")
-      assert(fastTime < statefulNaiveTime, "Fusing should make simple rules at least faster, also against stateful approach")
+      assert(fastTime < naiveTime / 2, "Fusing should make simple rules at least faster")
+      assert(fastTime < statefulNaiveTime / 2, "Fusing should make simple rules at least faster, also against stateful approach")
     }
   }
 
-  ignore("Fast traversal is fast in SimpleInterpreter.scala") {
+  test("Fast traversal is fast in SimpleInterpreter.scala") {
     val tree = fromFile("traversal/SimpleInterpreter.scala")
     global.ask { () =>
       val fastTime = speed("fast", tree, traverseFast)
       val naiveTime = speed("naive", tree, traverseNaive)
       val statefulNaiveTime = speed("naiveState", tree, traverseStatefulNaive)
 
-      assert(fastTime < naiveTime, "Fusing should make simple rules at least faster")
-      assert(fastTime < statefulNaiveTime, "Fusing should make simple rules at least faster, also against stateful approach")
+      assert(fastTime < naiveTime / 2, "Fusing should make simple rules at least faster")
+      assert(fastTime < statefulNaiveTime / 2, "Fusing should make simple rules at least faster, also against stateful approach")
     }
   }
 

@@ -1,10 +1,10 @@
 package scala.tools.abide
 package rules
 
-class PublicMutableTest extends AbideTest {
+class PublicMutableTest extends AnalysisTest {
   import scala.tools.abide.traversal._
 
-  val analyzer = new DefaultAnalyzer(global).enableOnly("public-mutable-fields")
+  analyzer.enableOnly("public-mutable-fields")
 
   "Immutability" should "be guaranteed for public vals" in {
     val tree = fromString("""

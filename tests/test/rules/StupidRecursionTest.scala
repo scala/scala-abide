@@ -1,10 +1,10 @@
 package scala.tools.abide
 package rules
 
-class StupidRecursionTest extends AbideTest {
+class StupidRecursionTest extends AnalysisTest {
   import scala.tools.abide.traversal._
 
-  val analyzer = new DefaultAnalyzer(global).enableOnly("stupid-recursion")
+  analyzer.enableOnly("stupid-recursion")
 
   "Definitions without parameters" should "not be stupidly defined as themselves" in {
     val tree = fromString("""

@@ -1,10 +1,10 @@
 package scala.tools.abide
 package rules
 
-class MatchCaseOnSeqTest extends AbideTest {
+class MatchCaseOnSeqTest extends AnalysisTest {
   import scala.tools.abide.traversal._
 
-  val analyzer = new DefaultAnalyzer(global).enableOnly("match-case-on-seq")
+  analyzer.enableOnly("match-case-on-seq")
 
   "Seqs" should "not be matched with ::" in {
     val tree = fromString("""
@@ -19,7 +19,7 @@ class MatchCaseOnSeqTest extends AbideTest {
     global.ask { () => analyzer(tree).size should be (1) }
   }
 
-  it should "not be matched with Nil" in {
+  it should "be matched with Nil" in {
     val tree = fromString("""
       class Toto {
         def toto(list : Seq[Int]) = list match {
@@ -29,10 +29,10 @@ class MatchCaseOnSeqTest extends AbideTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).size should be (1) }
+    global.ask { () => analyzer(tree).isEmpty should be (true) }
   }
 
-  it should "not be matched by either" in {
+  it should "not be matched by :: (even when Nil is around)" in {
     val tree = fromString("""
       class Toto {
         def toto(list : Seq[Int]) = list match {
@@ -42,7 +42,7 @@ class MatchCaseOnSeqTest extends AbideTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).size should be (2) }
+    global.ask { () => analyzer(tree).size should be (1) }
   }
 
   it should "work fine on other matchers" in {

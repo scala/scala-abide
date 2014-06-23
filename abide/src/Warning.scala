@@ -1,7 +1,5 @@
 package scala.tools.abide
 
-import scala.reflect.api._
-
 /**
  * Base trait for warnings discovered by the verification framework.
  * Each warning has a position and a rule from which it comes. This rule
@@ -9,6 +7,7 @@ import scala.reflect.api._
  * quickfix).
  */
 trait Warning {
-  val pos  : Position
-  val rule : Rule
+  val rule    : Rule
+  val pos     : rule.analyzer.global.Position
+  val message : String
 }

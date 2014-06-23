@@ -3,6 +3,9 @@ package compiler
 
 import scala.tools.nsc._
 import scala.tools.nsc.plugins._
+import scala.reflect.runtime.{universe => ru}
+
+import presentation._
 
 class AbidePlugin(val global: Global) extends Plugin {
   import global._
@@ -12,9 +15,20 @@ class AbidePlugin(val global: Global) extends Plugin {
 
   val components : List[PluginComponent] = List(component)
 
-  private var analyzer : String = scala.tools.abide.Abide.defaultAnalyzer
+  private var analyzerClass : String = "scala.tools.abide.DefaultAnalyzer"
+  private var presenterClass : String = "scala.tools.abide.presentation.ConsolePresenter"
 
-  private lazy val abide = scala.tools.abide.Abide.analyzer(global, analyzer).enableAll
+  private def reflect(className : String) : Any = {
+    val mirror = ru.runtimeMirror(getClass.getClassLoader)
+
+    val classSymbol = mirror.staticClass(className)
+    val classMirror = mirror.reflectClass(classSymbol)
+
+    val constructorSymbol = classSymbol.typeSignature.member(ru.termNames.CONSTRUCTOR).asMethod
+    val constructorMirror = classMirror.reflectConstructor(constructorSymbol)
+
+    constructorMirror(global)
+  }
 
   private[abide] object component extends {
     val global : AbidePlugin.this.global.type = AbidePlugin.this.global
@@ -22,12 +36,18 @@ class AbidePlugin(val global: Global) extends Plugin {
     val runsAfter = List("typer")
     val phaseName = AbidePlugin.this.name
 
+    type AnalyzerType = Analyzer { val global : AbidePlugin.this.global.type }
+    lazy val analyzer = reflect(analyzerClass).asInstanceOf[AnalyzerType].enableAll
+
+    type PresenterType = Presenter { val global : AbidePlugin.this.global.type }
+    lazy val presenter = reflect(presenterClass).asInstanceOf[PresenterType]
+
     def newPhase(prev : Phase) = new StdPhase(prev) {
       override def name = AbidePlugin.this.name
 
       def apply(unit : CompilationUnit) {
-        val warnings = abide(unit.body)
-        println(warnings.size)
+        val warnings = analyzer(unit.body)
+        presenter(unit, warnings)
       }
     }
   }
@@ -35,7 +55,7 @@ class AbidePlugin(val global: Global) extends Plugin {
   override def processOptions(options: List[String], error: String => Unit) {
     for (option <- options) {
       if (option.startsWith("analyzer:")) {
-         analyzer = option.substring("analyzer:".length)
+         analyzerClass = option.substring("analyzer:".length)
        } else {
          scala.sys.error("Option not understood: "+option)
       }

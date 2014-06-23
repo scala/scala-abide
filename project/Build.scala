@@ -42,7 +42,7 @@ object AbideBuild extends Build {
     .settings(
       scalaSource in Test          <<= (baseDirectory in Test)(base => base / "test"),
       resourceDirectory in Test    <<= (baseDirectory in Test)(base => base / "resources"),
-      libraryDependencies           += ("org.scalatest" %% "scalatest" % "2.1.7" % "test"),
+      libraryDependencies           += "org.scalatest" %% "scalatest" % "2.1.7" % "test",
       testOptions in Test           += Tests.Argument("-oF"),
       packagedArtifacts             := Map.empty
     ).dependsOn(macros, abide)

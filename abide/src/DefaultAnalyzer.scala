@@ -13,10 +13,11 @@ class DefaultAnalyzer(val global : Global) extends Analyzer with TraversalAnalyz
   )
 
   val rules = Seq(
-    new LocalValInsteadOfVar  (this),
-    new MemberValInsteadOfVar (this),
-    new StupidRecursion       (this),
-    new MatchCaseOnSeq        (this),
-    new PublicMutable         (this)
+    new RenamedDefaultParameter (this),
+    new MemberValInsteadOfVar   (this),
+    new LocalValInsteadOfVar    (this),
+    new StupidRecursion         (this),
+    new MatchCaseOnSeq          (this),
+    new PublicMutable           (this)
   )
 }

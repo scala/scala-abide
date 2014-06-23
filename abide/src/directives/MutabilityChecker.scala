@@ -99,7 +99,11 @@ trait MutabilityChecker {
           // should never happen, and can't imply mutability in any case
           case ImportType(expr) => false
 
+          case ErrorType => false
+
           case NoType => false
+
+          case null => scala.sys.error("Tried to check type mutability on `null` type")
 
           case tpe => scala.sys.error("Unknown type: " + tpe + " : " + tpe.getClass)
         }

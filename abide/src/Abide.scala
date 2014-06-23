@@ -4,29 +4,15 @@ import scala.tools.nsc._
 import scala.tools.nsc.plugins._
 import scala.tools.nsc.reporters._
 import scala.reflect.runtime.{universe => ru}
+import scala.reflect.internal.util._
 
 object Abide {
 
-  lazy val defaultAnalyzer = "scala.tools.abide.DefaultAnalyzer"
-
-  def analyzer(global : Global, className : String) : Analyzer = {
-    val mirror = ru.runtimeMirror(getClass.getClassLoader)
-
-    val classSymbol = mirror.staticClass(className)
-    val classMirror = mirror.reflectClass(classSymbol)
-
-    val constructorSymbol = classSymbol.typeSignature.member(ru.termNames.CONSTRUCTOR).asMethod
-    val constructorMirror = classMirror.reflectConstructor(constructorSymbol)
-
-    constructorMirror(global).asInstanceOf[Analyzer]
-  }
-
-  def analyzer(global : Global) : Analyzer = analyzer(global, defaultAnalyzer)
-
   class AbideCompiler(settings : Settings, reporter : Reporter) extends Global(settings, reporter) {
+    lazy val abidePlugin = new scala.tools.abide.compiler.AbidePlugin(this)
 
     override protected def loadRoughPluginsList : List[Plugin] = {
-      new compiler.AbidePlugin(this) :: super.loadRoughPluginsList
+      abidePlugin :: super.loadRoughPluginsList
     }
 
     override protected def computeInternalPhases() : Unit = {
@@ -41,15 +27,21 @@ object Abide {
     }
   }
 
-//  def run(options : String) {
+  private lazy val settings = new Settings(println)
+
+  private lazy val reporter = new ConsoleReporter(settings)
+    /*
+    new Reporter {
+    protected def info0(pos : Position, msg : String, severity : Severity, force : Boolean) {
+      // TODO: keep track of warnings/errors/info
+    }
+  }
+  */
+
+  private lazy val compiler = new AbideCompiler(settings, reporter)
+
   def main(args : Array[String]) {
-    val settings = new Settings(println)
-
     val command = new CompilerCommand(args.toList, settings)
-
-    val reporter = new ConsoleReporter(settings)
-
-    val compiler = new AbideCompiler(settings, reporter)
     val run = new compiler.Run
     run.compile(command.files)
   }
