@@ -1,10 +1,12 @@
 package scala.tools.abide
 
+import scala.tools.nsc._
+
 /**
  * Base class for all verification rules the framework will deal with
  */
 trait Rule {
-  val analyzer : Analyzer
+  val global : Global
 
   trait RuleState {
     def warnings : List[Warning]

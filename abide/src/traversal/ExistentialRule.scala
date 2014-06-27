@@ -2,7 +2,7 @@ package scala.tools.abide
 package traversal
 
 trait ExistentialRule extends SimpleTraversal with TraversalRule {
-  import analyzer.global._
+  import global._
 
   type Key
 

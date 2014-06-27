@@ -14,7 +14,7 @@ object AbideSbtPlugin extends AutoPlugin {
 
   import autoImport._
 
-  private val AbideConfig = config("abide").hide
+  private val AbideConfig = config("abide")
 
   private def abideScalaVersion(version : String) : String = CrossVersion.partialVersion(version) match {
     case Some((2, scalaMajor)) if scalaMajor >= 11 => version

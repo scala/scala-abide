@@ -4,9 +4,8 @@ package traversal
 import directives._
 import reflect.runtime.universe._
 
-class PublicMutable(val analyzer : TraversalAnalyzer with MutabilityChecker) extends WarningRule {
-  import analyzer._
-  import global._
+class PublicMutable(val analyzer : TraversalAnalyzer) extends WarningRule {
+  import analyzer.global._
 
   val name = "public-mutable-fields"
 

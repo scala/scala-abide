@@ -21,8 +21,8 @@ object TraversalMacros {
 
     import c.universe._
 
-    val Select(macroTree, TermName("_global")) = universe
-    val universeTree = Select(Select(macroTree, TermName("analyzer")), TermName("global"))
+    val Select(macroTree, TermName("_universe")) = universe
+    val universeTree = Select(macroTree, TermName("universe"))
 
     object Selection {
       def unapplySeq(select : Select) : Option[Seq[String]] = select match {
@@ -161,9 +161,9 @@ object TraversalMacros {
 }
 
 trait TraversalMacros extends Traversal {
-  import analyzer.global._
-  implicit lazy val _global : scala.reflect.api.Universe = analyzer.global
+  implicit lazy val _universe : scala.reflect.api.Universe = universe
 
+  import universe._
   def maintain : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
     val enter : State => State = x => x
   }
@@ -174,7 +174,7 @@ trait TraversalMacros extends Traversal {
   * Wrapper class for TraversalMacros.optimize_impl
   */
 trait SimpleTraversal extends TraversalMacros {
-  import analyzer.global._
+  import universe._
 
   type Step = PartialFunction[Tree, TraversalStep[Tree, State]]
 
@@ -202,7 +202,7 @@ trait SimpleTraversal extends TraversalMacros {
  * Wrapper class for TraversalMacros.optimizeStateful_impl
  */
 trait HierarchicTraversal extends TraversalMacros {
-  import analyzer.global._
+  import universe._
 
   type Step = State => PartialFunction[Tree, TraversalStep[Tree, State]]
 

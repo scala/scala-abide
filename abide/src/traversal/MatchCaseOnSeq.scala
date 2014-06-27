@@ -3,8 +3,8 @@ package traversal
 
 import reflect.runtime.universe._
 
-class MatchCaseOnSeq(val analyzer : TraversalAnalyzer) extends WarningRule {
-  import analyzer.global._
+class MatchCaseOnSeq(val analyzer : Analyzer) extends WarningRule {
+  import global._
 
   val name = "match-case-on-seq"
 

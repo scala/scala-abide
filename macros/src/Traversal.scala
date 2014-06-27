@@ -13,9 +13,8 @@ package traversal
  * @see FusingTraversals
  */
 trait Traversal {
-  val analyzer : FusingTraversals
-  import analyzer._
-  import global._
+  val universe : scala.reflect.api.Universe
+  import universe._
 
   /**
    * Step type, should return something like a PartialFunction[Tree,State]
@@ -39,7 +38,6 @@ trait Traversal {
     */
   def apply(tree : Tree, state : State) : Option[(State, Option[State => State])]
 
-
   /**
    * State type that is trundled along during traversal (no constraints since
    * TraversalSteps will actually act on the state type.
@@ -52,16 +50,19 @@ trait Traversal {
   /** Initial state value used during traversal */
   def emptyState : State
 
-  private def fused : FusedTraversal = new FusedTraversal {
+  private def fused : FusedTraversal { val universe : Traversal.this.universe.type } = new FusedTraversal {
+    val universe : Traversal.this.universe.type = Traversal.this.universe
     val traversals = Seq(Traversal.this.asInstanceOf[TraversalType])
     val emptyStates = Seq(Traversal.this.emptyState)
   }
 
-  def fuse(traversals : TraversalType*) : FusedTraversal = traversals.foldLeft(fused) {
-    (acc, traversal) => acc.fuse(traversal)
-  }
+  def fuse(traversals : Traversal { val universe : Traversal.this.universe.type }*) :
+    FusedTraversal { val universe : Traversal.this.universe.type } = traversals.foldLeft(fused) {
+      (acc, traversal) => acc.fuse(traversal)
+    }
 
   def traverse(tree : Tree) : State = {
-    fused.traverse(tree)(Traversal.this.asInstanceOf[TraversalType]).asInstanceOf[State]
+    val fused = Traversal.this.fused
+    fused.traverse(tree)(this.asInstanceOf[fused.TraversalType]).asInstanceOf[State]
   }
 }

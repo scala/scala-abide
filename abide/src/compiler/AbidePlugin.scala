@@ -15,8 +15,7 @@ class AbidePlugin(val global: Global) extends Plugin {
 
   val components : List[PluginComponent] = List(component)
 
-  private var analyzerClass : String = "scala.tools.abide.DefaultAnalyzer"
-  private var presenterClass : String = "scala.tools.abide.presentation.ConsolePresenter"
+  lazy val presenter = new presentaion.ConsolePresenter(global)
 
   private def reflect(className : String) : Any = {
     val mirror = ru.runtimeMirror(getClass.getClassLoader)
@@ -29,6 +28,19 @@ class AbidePlugin(val global: Global) extends Plugin {
 
     constructorMirror(global)
   }
+
+  lazy val mirror = ru.runtimeMirror(getClass.getClassLoader)
+  lazy val rules = for (ruleClass <- (ServiceLoader load classOf[Rule]).asScala) yield {
+    val ruleSymbol = mirror reflect ruleClass
+    val ruleMirror = mirror reflectClass ruleSymbol
+
+    val constructorSymbol = ruleSymbol.typeSignature.member(ru.termNames.CONSTRUCTOR).asMethod
+    val constructorMirror = ruleMirror.reflectConstructor(constructorSymbol)
+
+    constructorMirror(global).asInstanceOf[Rule { val global : AbidePlugin.this.global.type }]
+  }
+
+//  lazy val analysisComponents = rules.map(
 
   private[abide] object component extends {
     val global : AbidePlugin.this.global.type = AbidePlugin.this.global

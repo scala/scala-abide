@@ -2,7 +2,7 @@ package scala.tools.abide
 package traversal
 
 trait ScopingRule extends HierarchicTraversal with TraversalRule {
-  import analyzer.global._
+  import global._
 
   type Owner
 
