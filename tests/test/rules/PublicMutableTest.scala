@@ -42,7 +42,7 @@ class PublicMutableTest extends AnalysisTest {
 
   "Mutability" should "be warned about in public vals" in {
     val tree = fromString("""
-      class Mut { private var a : Int = 0 }
+      class Mut { var a : Int = 0 }
       class Toto {
         val mut : Mut = new Mut
       }

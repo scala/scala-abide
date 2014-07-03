@@ -26,7 +26,7 @@ class PublicMutable(val context : Context with MutabilityChecker) extends Warnin
     case valDef @ q"$mods val $name : $tpt = $value" if !mods.isSynthetic && tpt.tpe != null =>
       val getter : Symbol = valDef.symbol.getter
       val owner : Symbol = valDef.symbol.owner
-      if (getter.isPublic && (owner.isClass || owner.isModule) && mutable(tpt.tpe)) nok(Warning(valDef)) else maintain
+      if (getter.isPublic && (owner.isClass || owner.isModule) && publicMutable(tpt.tpe)) nok(Warning(valDef)) else maintain
 
     case varDef @ q"$mods var $name : $tpt = $value" if !mods.isSynthetic =>
       val getter : Symbol = varDef.symbol.getter
