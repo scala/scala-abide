@@ -1,10 +1,11 @@
-package scala.tools.abide
-package rules
+package scala.tools.abide.test.rules
+
+import scala.tools.abide.test._
+import com.typesafe.abide.sample._
 
 class LocalValInsteadOfVarTest extends AnalysisTest {
-  import scala.tools.abide.traversal._
 
-  analyzer.enableOnly("local-val-instead-of-var")
+  val rule = new LocalValInsteadOfVar(context)
 
   "Definition local vars" should "be vals when not assigned" in {
     val tree = fromString("""
@@ -18,7 +19,7 @@ class LocalValInsteadOfVarTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      val syms = analyzer(tree).map(_.asInstanceOf[LocalValInsteadOfVar#Warning].tree.symbol.toString)
+      val syms = apply(rule)(tree).map(_.tree.symbol.toString)
       syms.sorted should be (List("variable b", "variable c"))
     }
   }
@@ -35,7 +36,7 @@ class LocalValInsteadOfVarTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      analyzer(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be (true)
     }
   }
 
@@ -51,7 +52,7 @@ class LocalValInsteadOfVarTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      analyzer(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be (true)
     }
   }
 
@@ -63,7 +64,7 @@ class LocalValInsteadOfVarTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      analyzer(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be (true)
     }
 
     val tree2 = fromString("""
@@ -76,7 +77,7 @@ class LocalValInsteadOfVarTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      analyzer(tree2).isEmpty should be (true)
+      apply(rule)(tree2).isEmpty should be (true)
     }
   }
 

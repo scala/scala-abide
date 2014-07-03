@@ -1,13 +1,15 @@
-package scala.tools.abide
-package traversal
+package scala.tools.abide.test.traversal
 
-class OrderingTest extends AbideTest with FusingTraversals {
+import scala.tools.abide.test._
+import scala.reflect.internal.traversal._
+
+class OrderingTest extends AbideTest {
   import global._
 
   object stackingTraverser extends {
-    val analyzer : OrderingTest.this.type = OrderingTest.this
+    val universe : OrderingTest.this.global.type = OrderingTest.this.global
   } with Traversal {
-    import analyzer.global._
+    import universe._
 
     type State = List[Tree]
     def emptyState : State = Nil

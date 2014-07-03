@@ -8,6 +8,6 @@ package scala.tools.abide
  */
 trait Warning {
   val rule    : Rule
-  val pos     : rule.analyzer.global.Position
+  val pos     : rule.context.global.Position
   val message : String
 }

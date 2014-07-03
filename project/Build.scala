@@ -37,6 +37,10 @@ object AbideBuild extends Build {
       scalaSource in Compile <<= (baseDirectory in Compile)(base => base / "src")
     )
 
+  lazy val samples = Project("abide-samples", file("sample-rules"))
+    .settings(sharedSettings : _*)
+    .dependsOn(abide)
+
   lazy val tests = Project("tests", file("tests"))
     .settings(sharedSettings : _*)
     .settings(
@@ -45,12 +49,12 @@ object AbideBuild extends Build {
       libraryDependencies           += "org.scalatest" %% "scalatest" % "2.1.7" % "test",
       testOptions in Test           += Tests.Argument("-oF"),
       packagedArtifacts             := Map.empty
-    ).dependsOn(macros, abide)
+    ).dependsOn(macros, abide, samples)
 
   lazy val root  = Project("root", file("."))
     .settings(
       test in Test                  := (test in tests in Test).value,
       packagedArtifacts             := Map.empty
-    ).aggregate(macros, abide, tests, sbt)
+    ).aggregate(macros, abide, samples, tests, sbt)
 
 }

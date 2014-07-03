@@ -1,5 +1,4 @@
-package scala.tools.abide
-package traversal
+package scala.reflect.internal.traversal
 
 /**
  * Traversal
@@ -50,7 +49,7 @@ trait Traversal {
   /** Initial state value used during traversal */
   def emptyState : State
 
-  private def fused : FusedTraversal { val universe : Traversal.this.universe.type } = new FusedTraversal {
+  private lazy val fused : FusedTraversal { val universe : Traversal.this.universe.type } = new FusedTraversal {
     val universe : Traversal.this.universe.type = Traversal.this.universe
     val traversals = Seq(Traversal.this.asInstanceOf[TraversalType])
     val emptyStates = Seq(Traversal.this.emptyState)
@@ -62,7 +61,6 @@ trait Traversal {
     }
 
   def traverse(tree : Tree) : State = {
-    val fused = Traversal.this.fused
     fused.traverse(tree)(this.asInstanceOf[fused.TraversalType]).asInstanceOf[State]
   }
 }

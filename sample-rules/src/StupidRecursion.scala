@@ -1,10 +1,10 @@
-package scala.tools.abide
-package traversal
+package com.typesafe.abide.sample
 
-import reflect.runtime.universe._
+import scala.tools.abide._
+import scala.tools.abide.traversal._
 
-class StupidRecursion(val analyzer : TraversalAnalyzer) extends ScopingRule {
-  import analyzer.global._
+class StupidRecursion(val context : Context) extends ScopingRule {
+  import context.global._
 
   type Owner = Symbol
 

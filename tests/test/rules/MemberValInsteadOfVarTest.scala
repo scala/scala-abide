@@ -1,10 +1,11 @@
-package scala.tools.abide
-package rules
+package scala.tools.abide.test.rules
+
+import scala.tools.abide.test._
+import com.typesafe.abide.sample._
 
 class MemberValInsteadOfVarTest extends AnalysisTest {
-  import scala.tools.abide.traversal._
 
-  analyzer.enableOnly("member-val-instead-of-var")
+  val rule = new MemberValInsteadOfVar(context)
 
   "Member local vars" should "be vals when not assigned" in {
     val tree = fromString("""
@@ -15,7 +16,7 @@ class MemberValInsteadOfVarTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      val syms = analyzer(tree).map(_.asInstanceOf[MemberValInsteadOfVar#Warning].tree.symbol.toString)
+      val syms = apply(rule)(tree).map(_.tree.symbol.toString)
       syms.sorted should be (List("variable a"))
     }
   }
@@ -30,7 +31,7 @@ class MemberValInsteadOfVarTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      analyzer(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be (true)
     }
   }
 
@@ -43,7 +44,7 @@ class MemberValInsteadOfVarTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      analyzer(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be (true)
     }
   }
 
@@ -56,7 +57,7 @@ class MemberValInsteadOfVarTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      analyzer(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be (true)
     }
   }
 

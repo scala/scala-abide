@@ -1,8 +1,9 @@
-package scala.tools.abide
-package traversal
+package scala.tools.abide.traversal
+
+import scala.reflect.internal.traversal._
 
 trait ExistentialRule extends SimpleTraversal with TraversalRule {
-  import global._
+  import context.global._
 
   type Key
 

@@ -1,10 +1,12 @@
-package scala.tools.abide
-package rules
+package scala.tools.abide.test.rules
+
+import scala.tools.abide.test._
+import com.typesafe.abide.sample._
 
 class MatchCaseOnSeqTest extends AnalysisTest {
   import scala.tools.abide.traversal._
 
-  analyzer.enableOnly("match-case-on-seq")
+  val rule = new MatchCaseOnSeq(context)
 
   "Seqs" should "not be matched with ::" in {
     val tree = fromString("""
@@ -16,7 +18,7 @@ class MatchCaseOnSeqTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be (1) }
   }
 
   it should "be matched with Nil" in {
@@ -29,7 +31,7 @@ class MatchCaseOnSeqTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
   }
 
   it should "not be matched by :: (even when Nil is around)" in {
@@ -42,7 +44,7 @@ class MatchCaseOnSeqTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be (1) }
   }
 
   it should "work fine on other matchers" in {
@@ -55,7 +57,7 @@ class MatchCaseOnSeqTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
   }
 
   "Lists" should "accept :: and Nil as matchers" in {
@@ -68,7 +70,7 @@ class MatchCaseOnSeqTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
   }
 
 }

@@ -1,7 +1,7 @@
-package scala.tools.abide
-package presentation
+package scala.tools.abide.presentation
 
 import scala.tools.nsc._
+import scala.tools.abide._
 
 trait Presenter {
   val global : Global

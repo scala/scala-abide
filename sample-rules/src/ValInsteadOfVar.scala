@@ -1,14 +1,14 @@
-package scala.tools.abide
-package traversal
+package com.typesafe.abide.sample
 
-import reflect.runtime.universe._
+import scala.tools.abide._
+import scala.tools.abide.traversal._
 
 trait ValInsteadOfVar extends ExistentialRule {
-  type Key = analyzer.global.Symbol
+  type Key = context.global.Symbol
 }
 
-class LocalValInsteadOfVar(val analyzer : TraversalAnalyzer) extends ValInsteadOfVar {
-  import analyzer.global._
+class LocalValInsteadOfVar(val context : Context) extends ValInsteadOfVar {
+  import context.global._
 
   val name = "local-val-instead-of-var"
 
@@ -25,8 +25,8 @@ class LocalValInsteadOfVar(val analyzer : TraversalAnalyzer) extends ValInsteadO
   }
 }
 
-class MemberValInsteadOfVar(val analyzer : TraversalAnalyzer) extends ValInsteadOfVar {
-  import analyzer.global._
+class MemberValInsteadOfVar(val context : Context) extends ValInsteadOfVar {
+  import context.global._
 
   val name = "member-val-instead-of-var"
 

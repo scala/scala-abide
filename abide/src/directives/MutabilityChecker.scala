@@ -1,5 +1,4 @@
-package scala.tools.abide
-package directives
+package scala.tools.abide.directives
 
 import scala.tools.nsc._
 import scala.reflect.internal.util._

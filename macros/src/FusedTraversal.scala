@@ -1,5 +1,4 @@
-package scala.tools.abide
-package traversal
+package scala.reflect.internal.traversal
 
 /**
  * object FusedTraversal
@@ -19,7 +18,7 @@ object FusedTraversal {
     assert(traversals.nonEmpty, "Cannot fuse empty list of traversals")
     val traversal = traversals.head
     val tail = traversals.tail.toSeq
-    traversal fuse (tail : _*)
+    (traversal fuse (tail : _*)).force
   }
 }
 

@@ -1,4 +1,4 @@
-package scala.tools.abide
+package scala.tools.abide.test
 
 import scala.tools.nsc.io._
 import scala.tools.nsc.interactive._

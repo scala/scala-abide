@@ -1,5 +1,4 @@
-package scala.tools.abide
-package traversal
+package scala.reflect.internal.traversal
 
 import scala.reflect.macros._
 import scala.language.experimental.macros
@@ -16,56 +15,57 @@ object TraversalMacros {
 
   /** Actual extraction method */
   def extractClasses(c : blackbox.Context)
-                    (trees : List[c.Tree])
-                    (universe : c.Tree) : Option[List[c.Tree]] = {
+                    (trees : List[c.Tree]) : Option[List[c.Tree]] = {
 
     import c.universe._
 
-    val Select(macroTree, TermName("_universe")) = universe
-    val universeTree = Select(macroTree, TermName("universe"))
-
     object Selection {
-      def unapplySeq(select : Select) : Option[Seq[String]] = select match {
-        case Select(tree, name) if tree equalsStructure universeTree =>
-          Some(Seq(name.toString))
+      private def selection(select : Select) : Option[(Tree, Seq[String])] = select match {
+        case Select(tree, name) if tree.tpe <:< typeOf[scala.reflect.api.Universe] =>
+          Some(tree -> Seq(name.toString))
         case Select(tree : Select, name) =>
-          unapplySeq(tree).map(seq => seq :+ name.toString)
+          selection(tree).map(p => p._1 -> (p._2 :+ name.toString))
+        case _ => None
+      }
+
+      def unapply(select : Select) : Option[(Tree, String, String, String)] = selection(select) match {
+        case Some((tree, names)) if names.size == 3 => Some((tree, names(0), names(1), names(2)))
         case _ => None
       }
     }
 
     def treeToClass(t: Tree) : Option[Tree] = t match {
-      case Selection("internal", "reificationSupport", "SyntacticVarDef" ) => Some(q"classOf[$universeTree.ValDef]")
-      case Selection("internal", "reificationSupport", "SyntacticValDef" ) => Some(q"classOf[$universeTree.ValDef]")
-      case Selection("internal", "reificationSupport", "SyntacticDefDef" ) => Some(q"classOf[$universeTree.DefDef]")
-      case Selection("internal", "reificationSupport", "SyntacticAssign" ) => Some(q"classOf[$universeTree.Assign]")
-      case Selection("internal", "reificationSupport", "SyntacticApplied") => Some(q"classOf[$universeTree.Apply]" )
-      case Selection("internal", "reificationSupport", "SyntacticMatch"  ) => Some(q"classOf[$universeTree.Match]" )
+      case Selection(universe, "internal", "reificationSupport", "SyntacticMatch"     ) => Some(q"classOf[$universe.Match]" )
+      case Selection(universe, "internal", "reificationSupport", "SyntacticVarDef"    ) => Some(q"classOf[$universe.ValDef]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticValDef"    ) => Some(q"classOf[$universe.ValDef]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticDefDef"    ) => Some(q"classOf[$universe.DefDef]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticAssign"    ) => Some(q"classOf[$universe.Assign]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticApplied"   ) => Some(q"classOf[$universe.Apply]" )
+      case Selection(universe, "internal", "reificationSupport", "SyntacticSelectTerm") => Some(q"classOf[$universe.Select]")
       case _ =>
         println("Unmanaged quasiquote: " + t)
         None
     }
 
     object Reference {
-      private def refEq(tpe : Type, tree : Tree) : Boolean = (tpe, tree) match {
-        case (SingleType(pre, sym), Select(parent, name)) =>
-          sym.name == name && refEq(pre, parent)
-        case (ThisType(sym), This(name)) =>
-          sym.name == name
-        case _ => false
+      private def reference(tpe : Type) : Option[(Type, Seq[String])] = tpe match {
+        case tpe if tpe <:< typeOf[scala.reflect.api.Universe] =>
+          Some((tpe -> Seq.empty[String]))
+        case TypeRef(pre, sym, _) =>
+          reference(pre).map(p => p._1 -> (p._2 :+ sym.name.toString))
+        case _ => None
       }
 
-      def unapplySeq(tp : Type) : Option[Seq[String]] = tp match {
-        case st : SingleType if refEq(st, universeTree) => Some(Seq.empty)
-        case TypeRef(pre, sym, _) => unapplySeq(pre).map(seq => seq :+ sym.name.toString)
+      def unapply(tp : Type) : Option[(Type, String)] = reference(tp) match {
+        case Some((tpe, names)) if names.size == 1 => Some((tpe, names(0)))
         case _ => None
       }
     }
 
     def typeToClass(t: Type) : Option[Tree] = t match {
-      case Reference("Select") => Some(q"classOf[$universeTree.Select]")
-      case Reference("Ident" ) => Some(q"classOf[$universeTree.Ident]" )
-      case Reference("DefDef") => Some(q"classOf[$universeTree.DefDef]")
+      case Reference(tpe, "Select") => Some(q"scala.reflect.classTag[$t].runtimeClass")
+      case Reference(tpe, "Ident" ) => Some(q"scala.reflect.classTag[$t].runtimeClass")
+      case Reference(tpe, "DefDef") => Some(q"scala.reflect.classTag[$t].runtimeClass")
       case _ =>
         println("Unmanaged type: " + t)
         None
@@ -121,13 +121,12 @@ object TraversalMacros {
     * match any other trees.
     */
   def optimize_impl(c : blackbox.Context)
-                   (pf : c.Tree)
-                   (universe : c.Tree) = {
+                   (pf : c.Tree) = {
 
     import c.universe._
 
     val classes : Option[List[Tree]] = pf match {
-      case q"{ case ..$cases }" => extractClasses(c)(cases)(universe)
+      case q"{ case ..$cases }" => extractClasses(c)(cases)
       case _ => None
     }
 
@@ -145,14 +144,13 @@ object TraversalMacros {
     *   }
     */
   def optimizeStateful_impl(c : blackbox.Context)
-                           (f : c.Tree)
-                           (universe : c.Tree) = {
+                           (f : c.Tree) = {
 
     import c.universe._
 
     f match {
       case q"($stateArg) => { case ..$cases }" =>
-        val classes = extractClasses(c)(cases)(universe)
+        val classes = extractClasses(c)(cases)
         q"StateExpansion($classes, $f)"
       case _ =>
         q"StateExpansion(None, $f)"
@@ -161,8 +159,6 @@ object TraversalMacros {
 }
 
 trait TraversalMacros extends Traversal {
-  implicit lazy val _universe : scala.reflect.api.Universe = universe
-
   import universe._
   def maintain : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
     val enter : State => State = x => x
@@ -186,8 +182,7 @@ trait SimpleTraversal extends TraversalMacros {
     def apply(tree : Tree) : TraversalStep[Tree,State] = pf.apply(tree)
   }
 
-  def optimize(pf : PartialFunction[Tree, TraversalStep[Tree, State]])
-              (implicit universe : scala.reflect.api.Universe) :
+  def optimize(pf : PartialFunction[Tree, TraversalStep[Tree, State]]) :
               PartialFunction[Tree, TraversalStep[Tree, State]] = macro TraversalMacros.optimize_impl
 
   lazy val lifted = step.lift
@@ -213,8 +208,7 @@ trait HierarchicTraversal extends TraversalMacros {
     def apply(state : State) : PartialFunction[Tree,TraversalStep[Tree,State]] = f.apply(state)
   }
 
-  def optimize(f : State => PartialFunction[Tree, TraversalStep[Tree, State]])
-              (implicit universe : scala.reflect.api.Universe) :
+  def optimize(f : State => PartialFunction[Tree, TraversalStep[Tree, State]]) : 
               State => PartialFunction[Tree, TraversalStep[Tree, State]] = macro TraversalMacros.optimizeStateful_impl
 
   def apply(tree : Tree, state : State) : Option[(State, Option[State => State])] = {

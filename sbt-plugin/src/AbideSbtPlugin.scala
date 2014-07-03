@@ -43,8 +43,6 @@ object AbideSbtPlugin extends AutoPlugin {
         Seq("-classpath", cpString)
       }
 
-      val analyzerOpts : Seq[String] = Seq("-P:abide:analyzer:" + (analyzer in abide).value)
-
       val compatibilityOpts : Seq[String] = CrossVersion.partialVersion((scalaVersion in Compile).value) match {
         case Some((2, 10)) => Seq("-Xsource:2.10", "-Ymacro-expand:none")
         case _ => Seq.empty
@@ -52,10 +50,25 @@ object AbideSbtPlugin extends AutoPlugin {
 
       val sourcePaths : Seq[String] = (sources in Compile).value.map(_.getAbsolutePath)
 
-      val options = cpOpts ++ analyzerOpts ++ compatibilityOpts ++ sourcePaths
-
       if (sourcePaths.filter(_.endsWith(".scala")).nonEmpty) {
         val abideCp : Seq[java.io.File] = update.value.select(configurationFilter("abide"))
+
+        val ruleClasses = abideCp.flatMap { file =>
+          val pluginXmlStream = sbt.classpath.ClasspathUtilities.toLoader(Seq(file)).getResourceAsStream("abide-plugin.xml")
+
+          if (pluginXmlStream == null) Nil else scala.xml.XML.load(pluginXmlStream) match {
+            case <plugin>{ rules @ _* }</plugin> => rules.flatMap {
+              case rule @ <rule /> => Some(rule \ "@class")
+              case _ => None
+            }
+            case _ => Nil
+          }
+        }
+
+        val ruleOptions = ruleClasses.map(cls => "-P:abide:ruleClass:" + cls)
+
+        val options = cpOpts ++ ruleOptions ++ compatibilityOpts ++ sourcePaths
+
         val loader : ClassLoader = sbt.classpath.ClasspathUtilities.toLoader(abideCp)
 
         val mirror = ru.runtimeMirror(loader)

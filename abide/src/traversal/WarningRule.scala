@@ -1,8 +1,9 @@
-package scala.tools.abide
-package traversal
+package scala.tools.abide.traversal
+
+import scala.reflect.internal.traversal._
 
 trait WarningRule extends SimpleTraversal with TraversalRule { self : Traversal =>
-  import analyzer.global._
+  import context.global._
 
   def emptyState = State(Nil)
   case class State(warnings : List[Warning]) extends RuleState {

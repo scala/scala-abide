@@ -5,3 +5,4 @@ rules/target
 project/target
 target
 *.swp
+*.BAK

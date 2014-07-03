@@ -1,11 +1,11 @@
-package scala.tools.abide
-package compiler
+package scala.tools.abide.compiler
 
 import scala.tools.nsc._
 import scala.tools.nsc.plugins._
 import scala.reflect.runtime.{universe => ru}
 
-import presentation._
+import scala.tools.abide._
+import scala.tools.abide.presentation._
 
 class AbidePlugin(val global: Global) extends Plugin {
   import global._
@@ -15,32 +15,69 @@ class AbidePlugin(val global: Global) extends Plugin {
 
   val components : List[PluginComponent] = List(component)
 
-  lazy val presenter = new presentaion.ConsolePresenter(global)
-
-  private def reflect(className : String) : Any = {
-    val mirror = ru.runtimeMirror(getClass.getClassLoader)
-
-    val classSymbol = mirror.staticClass(className)
-    val classMirror = mirror.reflectClass(classSymbol)
-
-    val constructorSymbol = classSymbol.typeSignature.member(ru.termNames.CONSTRUCTOR).asMethod
-    val constructorMirror = classMirror.reflectConstructor(constructorSymbol)
-
-    constructorMirror(global)
-  }
-
   lazy val mirror = ru.runtimeMirror(getClass.getClassLoader)
-  lazy val rules = for (ruleClass <- (ServiceLoader load classOf[Rule]).asScala) yield {
-    val ruleSymbol = mirror reflect ruleClass
+  lazy val ruleMirrors = for (ruleClass <- ruleClasses) yield {
+    val ruleSymbol = mirror staticClass ruleClass
     val ruleMirror = mirror reflectClass ruleSymbol
 
-    val constructorSymbol = ruleSymbol.typeSignature.member(ru.termNames.CONSTRUCTOR).asMethod
-    val constructorMirror = ruleMirror.reflectConstructor(constructorSymbol)
-
-    constructorMirror(global).asInstanceOf[Rule { val global : AbidePlugin.this.global.type }]
+    ruleSymbol -> ruleMirror
   }
 
-//  lazy val analysisComponents = rules.map(
+  lazy val ruleContexts = {
+    import ru._
+
+    def contextGenerator(sym : ru.Symbol) : ru.ModuleSymbol = sym.asClass.baseClasses.collectFirst {
+      case tpe : ru.TypeSymbol if tpe.toType.companion <:< ru.typeOf[ContextGenerator] =>
+        tpe.toType.companion.typeSymbol.asClass.module.asModule
+    }.get
+
+    val contextGenerators = for (rule @ (ruleSymbol, ruleMirror) <- ruleMirrors) yield {
+      val generatorSymbol = contextGenerator(ruleSymbol)
+      val generatorMirror = mirror reflectModule generatorSymbol
+
+      rule -> generatorMirror.instance.asInstanceOf[ContextGenerator]
+    }
+
+    def typeTag[T : ru.TypeTag](obj : T) : ru.TypeTag[T] = ru.typeTag[T]
+    def generalize[T1 <: Context : ru.TypeTag, T2 <: Context : ru.TypeTag](o1 : T1, o2 : T2) : Context = {
+      if (typeTag(o1).tpe <:< typeTag(o2).tpe) o1 else o2
+    }
+
+    contextGenerators.foldLeft(List.empty[((ru.ClassSymbol, ru.ClassMirror), Context)]) {
+      case (list, (rule @ (ruleSymbol, ruleMirror), generator)) =>
+        val context = generator.mkContext(global)
+        val bottomCtx = list.foldLeft(context) { case (acc, (rule, ctx)) => generalize(acc, ctx) }
+        (rule -> bottomCtx) :: (list map { case (rule, ctx) => rule -> generalize(ctx, bottomCtx) })
+    }.toMap
+  }
+
+  lazy val rules = for (rule @ (ruleSymbol, ruleMirror) <- ruleMirrors) yield {
+    val constructorSymbol = ruleSymbol.typeSignature.member(ru.termNames.CONSTRUCTOR).asMethod
+    val constructorMirror = ruleMirror reflectConstructor constructorSymbol
+    val context = ruleContexts(rule)
+
+    constructorMirror(context).asInstanceOf[Rule { val context : Context { val global : AbidePlugin.this.global.type } }]
+  }
+
+  lazy val ruleAnalyzers = {
+    def generalize(g1 : AnalyzerGenerator, g2 : AnalyzerGenerator) : AnalyzerGenerator = {
+      def fix[A](a : A)(f : A => A) : A = { val na = f(a); if (na == a) na else fix(na)(f) }
+      val g2Subsumes : Set[AnalyzerGenerator] = fix(g2.subsumes)(set => set ++ set.flatMap(_.subsumes))
+      if (g2Subsumes(g1)) g2 else g1
+    }
+
+    val allGenerators : List[(Rule, AnalyzerGenerator)] = rules.map(rule => rule -> rule.analyzer)
+    allGenerators.foldLeft(List.empty[(Rule, AnalyzerGenerator)]) { case (list, (rule, generator)) =>
+      val bottomGen = list.foldLeft(generator) { case (acc, (rule, generator)) => generalize(generator, acc) }
+      (rule -> bottomGen) :: (list map { case (rule, gen) => rule -> generalize(gen, bottomGen) })
+    }
+  }
+
+  lazy val analyzers = ruleAnalyzers.groupBy(_._2).toList.map { case (generator, rules) =>
+    generator.mkAnalyzer(global, rules.map(_._1)).asInstanceOf[Analyzer { val global : AbidePlugin.this.global.type }]
+  }
+
+  lazy val presenter = new presentation.ConsolePresenter(global).asInstanceOf[Presenter { val global : AbidePlugin.this.global.type }]
 
   private[abide] object component extends {
     val global : AbidePlugin.this.global.type = AbidePlugin.this.global
@@ -48,26 +85,27 @@ class AbidePlugin(val global: Global) extends Plugin {
     val runsAfter = List("typer")
     val phaseName = AbidePlugin.this.name
 
-    type AnalyzerType = Analyzer { val global : AbidePlugin.this.global.type }
-    lazy val analyzer = reflect(analyzerClass).asInstanceOf[AnalyzerType].enableAll
-
-    type PresenterType = Presenter { val global : AbidePlugin.this.global.type }
-    lazy val presenter = reflect(presenterClass).asInstanceOf[PresenterType]
-
     def newPhase(prev : Phase) = new StdPhase(prev) {
       override def name = AbidePlugin.this.name
 
+      private var time : Long = 0
+
       def apply(unit : CompilationUnit) {
-        val warnings = analyzer(unit.body)
+        val millis = System.currentTimeMillis
+        val warnings = analyzers.flatMap(analyzer => analyzer(unit.body))
+        time += System.currentTimeMillis - millis
+        println("time="+time)
         presenter(unit, warnings)
       }
     }
   }
 
+  private var ruleClasses : List[String] = Nil
+
   override def processOptions(options: List[String], error: String => Unit) {
     for (option <- options) {
-      if (option.startsWith("analyzer:")) {
-         analyzerClass = option.substring("analyzer:".length)
+      if (option.startsWith("ruleClass:")) {
+         ruleClasses ::= option.substring("ruleClass:".length)
        } else {
          scala.sys.error("Option not understood: "+option)
       }

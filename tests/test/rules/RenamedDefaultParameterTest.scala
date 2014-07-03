@@ -1,8 +1,11 @@
-package scala.tools.abide
-package rules
+package scala.tools.abide.test.rules
+
+import scala.tools.abide.test._
+import com.typesafe.abide.sample._
 
 class RenamedDefaultParameterTest extends AnalysisTest {
-  analyzer.enableOnly("renamed-default-parameter")
+
+  val rule = new RenamedDefaultParameter(context)
 
   "Methods without defaults" should "be valid when not renamed" in {
     val tree = fromString("""
@@ -14,7 +17,7 @@ class RenamedDefaultParameterTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
   }
 
   it should "be valid when renamed" in {
@@ -27,7 +30,7 @@ class RenamedDefaultParameterTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
   }
 
   "Methods with defaults" should "be valid when not renamed" in {
@@ -40,7 +43,7 @@ class RenamedDefaultParameterTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
   }
 
   it should "be valid when renamed to non-existing parameter" in {
@@ -53,7 +56,7 @@ class RenamedDefaultParameterTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
   }
 
   it should "be invalid when renamed" in {
@@ -66,6 +69,6 @@ class RenamedDefaultParameterTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).size should be (2) }
+    global.ask { () => apply(rule)(tree).size should be (2) }
   }
 }

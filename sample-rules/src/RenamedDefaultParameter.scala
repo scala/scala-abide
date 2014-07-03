@@ -1,8 +1,10 @@
-package scala.tools.abide
-package traversal
+package com.typesafe.abide.sample
 
-class RenamedDefaultParameter(val analyzer : TraversalAnalyzer) extends WarningRule {
-  import analyzer.global._
+import scala.tools.abide._
+import scala.tools.abide.traversal._
+
+class RenamedDefaultParameter(val context : Context) extends WarningRule {
+  import context.global._
 
   val name = "renamed-default-parameter"
 

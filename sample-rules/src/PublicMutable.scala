@@ -1,11 +1,16 @@
-package scala.tools.abide
-package traversal
+package com.typesafe.abide.sample
 
-import directives._
-import reflect.runtime.universe._
+import scala.tools.abide._
+import scala.tools.abide.traversal._
+import scala.tools.abide.directives._
 
-class PublicMutable(val analyzer : TraversalAnalyzer) extends WarningRule {
-  import analyzer.global._
+object PublicMutable extends ContextGenerator {
+  def mkContext(global : scala.tools.nsc.Global) = new Context(global) with MutabilityChecker
+}
+
+class PublicMutable(val context : Context with MutabilityChecker) extends WarningRule {
+  import context._
+  import global._
 
   val name = "public-mutable-fields"
 

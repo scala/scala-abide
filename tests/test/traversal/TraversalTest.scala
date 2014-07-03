@@ -1,14 +1,18 @@
-package scala.tools.abide
-package traversal
+package scala.tools.abide.test.traversal
 
+import scala.tools.abide._
+import scala.tools.abide.test._
+import scala.reflect.internal.traversal._
 import org.scalatest.FunSuite
 
-class TraversalTest extends AbideTest with FusingTraversals {
+class TraversalTest extends AbideTest {
+
+  val context = new Context(global).asInstanceOf[Context { val global : TraversalTest.this.global.type }]
 
   object pathTraverser1 extends {
-    val analyzer : TraversalTest.this.type = TraversalTest.this
+    val universe : TraversalTest.this.global.type = TraversalTest.this.global
   } with SimpleTraversal {
-    import analyzer.global._
+    import universe._
 
     type State = Set[Tree]
     def emptyState : State = Set.empty
@@ -50,9 +54,9 @@ class TraversalTest extends AbideTest with FusingTraversals {
   }
 
   object pathTraverser2 extends {
-    val analyzer : TraversalTest.this.type = TraversalTest.this
+    val universe : TraversalTest.this.global.type = TraversalTest.this.global
   } with HierarchicTraversal {
-    import analyzer.global._
+    import universe._
 
     type State = (List[Tree], Set[(Option[Tree], Tree)])
     def emptyState : State = (Nil, Set.empty)

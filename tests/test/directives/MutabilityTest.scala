@@ -1,6 +1,7 @@
-package scala.tools.abide
-package directives
+package scala.tools.abide.test.directives
 
+import scala.tools.abide.test._
+import scala.tools.abide.directives._
 import scala.tools.nsc._
 
 class MutabilityTest extends AbideTest {

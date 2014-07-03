@@ -1,10 +1,11 @@
-package scala.tools.abide
-package rules
+package scala.tools.abide.test.rules
+
+import scala.tools.abide.test._
+import com.typesafe.abide.sample._
 
 class StupidRecursionTest extends AnalysisTest {
-  import scala.tools.abide.traversal._
 
-  analyzer.enableOnly("stupid-recursion")
+  val rule = new StupidRecursion(context)
 
   "Definitions without parameters" should "not be stupidly defined as themselves" in {
     val tree = fromString("""
@@ -14,7 +15,7 @@ class StupidRecursionTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      val syms = analyzer(tree).map(_.asInstanceOf[StupidRecursion#Warning].tree.symbol.toString)
+      val syms = apply(rule)(tree).map(_.tree.symbol.toString)
       syms.sorted should be (List("method test"))
     }
   }
@@ -30,7 +31,7 @@ class StupidRecursionTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      val syms = analyzer(tree).map(_.asInstanceOf[StupidRecursion#Warning].tree.symbol.toString)
+      val syms = apply(rule)(tree).map(_.tree.symbol.toString)
       syms.sorted should be (List("method rec"))
     }
   }
@@ -48,6 +49,6 @@ class StupidRecursionTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
   }
 }

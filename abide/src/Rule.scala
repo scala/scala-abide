@@ -2,11 +2,16 @@ package scala.tools.abide
 
 import scala.tools.nsc._
 
+object Rule extends ContextGenerator {
+  def mkContext(global : Global) : Context = new Context(global)
+}
+
 /**
  * Base class for all verification rules the framework will deal with
  */
 trait Rule {
-  val global : Global
+  val context : Context
+  val analyzer : AnalyzerGenerator
 
   trait RuleState {
     def warnings : List[Warning]

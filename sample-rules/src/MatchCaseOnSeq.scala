@@ -1,10 +1,10 @@
-package scala.tools.abide
-package traversal
+package com.typesafe.abide.sample
 
-import reflect.runtime.universe._
+import scala.tools.abide._
+import scala.tools.abide.traversal._
 
-class MatchCaseOnSeq(val analyzer : Analyzer) extends WarningRule {
-  import global._
+class MatchCaseOnSeq(val context : Context) extends WarningRule {
+  import context.global._
 
   val name = "match-case-on-seq"
 

@@ -1,5 +1,4 @@
-package scala.tools.abide
-package traversal
+package scala.reflect.internal.traversal
 
 import scala.collection.GenTraversableOnce
 import scala.collection.generic._

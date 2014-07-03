@@ -1,10 +1,12 @@
-package scala.tools.abide
-package rules
+package scala.tools.abide.test.rules
+
+import scala.tools.abide.test._
+import com.typesafe.abide.sample._
 
 class PublicMutableTest extends AnalysisTest {
   import scala.tools.abide.traversal._
 
-  analyzer.enableOnly("public-mutable-fields")
+  val rule = new PublicMutable(context)
 
   "Immutability" should "be guaranteed for public vals" in {
     val tree = fromString("""
@@ -13,7 +15,7 @@ class PublicMutableTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
   }
 
   it should "not matter in public defs" in {
@@ -24,7 +26,7 @@ class PublicMutableTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
   }
 
   it should "not matter in private vals" in {
@@ -35,7 +37,7 @@ class PublicMutableTest extends AnalysisTest {
       }
     """)
 
-    global.ask { () => analyzer(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
   }
 
   "Mutability" should "be warned about in public vals" in {
@@ -47,7 +49,7 @@ class PublicMutableTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      val syms = analyzer(tree).map(_.asInstanceOf[PublicMutable#Warning].tree.symbol.toString)
+      val syms = apply(rule)(tree).map(_.tree.symbol.toString)
       syms.sorted should be (List("value mut"))
     }
   }
@@ -60,7 +62,7 @@ class PublicMutableTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      val syms = analyzer(tree).map(_.asInstanceOf[PublicMutable#Warning].tree.symbol.toString)
+      val syms = apply(rule)(tree).map(_.tree.symbol.toString)
       syms.sorted should be (List("variable a"))
     }
   }
@@ -74,7 +76,7 @@ class PublicMutableTest extends AnalysisTest {
     """)
 
     global.ask { () =>
-      val syms = analyzer(tree).map(_.asInstanceOf[PublicMutable#Warning].tree.symbol.toString)
+      val syms = apply(rule)(tree).map(_.tree.symbol.toString)
       syms.sorted should be (List("variable toto"))
     }
   }

@@ -1,9 +1,10 @@
-package scala.tools.abide
-package traversal
+package scala.tools.abide.test.traversal
 
+import scala.tools.abide.test._
+import scala.reflect.internal.traversal._
 import org.scalatest.FunSuite
 
-class SpeedAnalysis extends FunSuite with TreeProvider with FusingTraversals {
+class SpeedAnalysis extends FunSuite with TreeProvider {
   import global._
   import org.scalatest._
 
@@ -24,8 +25,11 @@ class SpeedAnalysis extends FunSuite with TreeProvider with FusingTraversals {
     time
   }
 
-  class FastTraversalImpl(val analyzer : SpeedAnalysis.this.type) extends SimpleTraversal {
-    import analyzer.global._
+  val context = new scala.tools.abide.Context(global).asInstanceOf[scala.tools.abide.Context { val global : SpeedAnalysis.this.global.type }]
+
+  class FastTraversalImpl(val context : scala.tools.abide.Context) extends SimpleTraversal {
+    override val universe : SpeedAnalysis.this.global.type = SpeedAnalysis.this.global
+    import universe._
 
     type State = Map[Symbol, Boolean]
     def emptyState : State = Map.empty
@@ -46,7 +50,7 @@ class SpeedAnalysis extends FunSuite with TreeProvider with FusingTraversals {
     }
   }
 
-  val fastTraverser = fuse((1 to processorCount).map { x => new FastTraversalImpl(this) } : _*).force
+  val fastTraverser = FusedTraversal(global)((1 to processorCount).map { x => new FastTraversalImpl(context) } : _*).force
 
   def traverseFast(tree : Tree) : List[Symbol] = fastTraverser.traverse(tree).toSeq.flatMap {
     x => x.asInstanceOf[Map[Symbol, Boolean]].collect { case (a, false) => a }
