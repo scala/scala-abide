@@ -1,16 +1,16 @@
 package scala.tools.abide.directives
 
-import scala.tools.nsc._
+import scala.reflect.internal._
 import scala.reflect.internal.util._
 
 import scala.collection.mutable.{Map => MutableMap}
 
 trait MutabilityChecker {
 
-  val global : Global
+  val universe : SymbolTable
 
-  import global._
-  import global.definitions._
+  import universe._
+  import universe.definitions._
   import scala.collection.immutable.Set
 
   private lazy val mutableTraitSymbol   : Symbol = rootMirror.getClassByName(newTypeName("scala.Mutable"))

@@ -7,7 +7,7 @@ import scala.tools.nsc._
 class MutabilityTest extends AbideTest {
 
   object mutable extends {
-    val global : MutabilityTest.this.global.type = MutabilityTest.this.global
+    val universe : MutabilityTest.this.global.type = MutabilityTest.this.global
   } with MutabilityChecker
 
   import global._

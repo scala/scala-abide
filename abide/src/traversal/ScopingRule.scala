@@ -2,8 +2,8 @@ package scala.tools.abide.traversal
 
 import scala.reflect.internal.traversal._
 
-trait ScopingRule extends HierarchicTraversal with TraversalRule {
-  import context.global._
+trait ScopingRule extends TraversalRule with ScopingTraversal {
+  import context.universe._
 
   type Owner
 
@@ -15,13 +15,8 @@ trait ScopingRule extends HierarchicTraversal with TraversalRule {
     def in(owner : Owner) : Boolean = scope.nonEmpty && owner == scope.head
   }
 
-  def enter(owner : Owner) : TraversalStep[Tree, State] = new TraversalStep[Tree, State] {
-    val enter = (state : State) => state enter owner
-    val leave = Some((state : State) => state.leave)
-  }
+  def enter(owner : Owner) { transform(_ enter owner, _.leave) }
 
-  def nok(warning : Warning) : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
-    val enter = (state : State) => state nok warning
-  }
+  def nok(warning : Warning) { transform(_ nok warning) }
 
 }

@@ -23,11 +23,16 @@ or simply add these options to your call to `scalac` to enable Abide during your
 Since sbt configurations are not available to compiler plugins, both the classpath to the jar files containing Abide rules _and_ the complete class name of
 the rules we wish to activate are necessary for the plugin to work. This mode does however provide simple integration for non-sbt build tools like eclipse or maven.
 
-2. use the sbt-abide plugin by adding ```scala libraryDependencies += "com.typesafe" % "abide_2.11" % "0.1-SNAPSHOT"``` to your `project/plugins.sbt` file
-and then choose the rule libraries by adding the required jars to your dependencies with 
-```scala libraryDependencies += "com.typesafe" % "abide-samples_2.11" % "0.1-SNAPSHOT"```. Note that this mode can run on scala 2.10 projects by using the compiler
-`-Xsource:2.10` flag, however the libraries _must_ use the scala 2.11 version!
+2. use the sbt-abide plugin by adding
 ```scala
+libraryDependencies += "com.typesafe" % "abide_2.11" % "0.1-SNAPSHOT"
+```
+to your `project/plugins.sbt` file and then choose the rule libraries by adding the required jars to your dependencies with 
+```scala
+libraryDependencies += "com.typesafe" % "abide-samples_2.11" % "0.1-SNAPSHOT" % "abide"
+```
+
+Note that this mode can run on scala 2.10 projects by using the compiler `-Xsource:2.10` flag, however the libraries _must_ use the scala 2.11 version!
 
 ## Extending Abide
 

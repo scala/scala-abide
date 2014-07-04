@@ -11,15 +11,13 @@ class TraversalTest extends AbideTest {
 
   object pathTraverser1 extends {
     val universe : TraversalTest.this.global.type = TraversalTest.this.global
-  } with SimpleTraversal {
+  } with OptimizingTraversal {
     import universe._
 
     type State = Set[Tree]
     def emptyState : State = Set.empty
 
-    def add(tree : Tree) : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
-      val enter = (state : State) => state + tree
-    }
+    def add(tree : Tree) { transform(_ + tree) }
 
     val step = optimize {
       case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>
@@ -45,41 +43,45 @@ class TraversalTest extends AbideTest {
 
   "Traversal completeness on vars and assigns" should "be valid in AddressBook.scala" in {
     val tree = fromFile("traversal/AddressBook.scala")
-    global.ask { () => pathTraverser1.traverse(tree) should be (pathTraversal1(tree)) }
+    global.ask { () =>
+      pathTraverser1.traverse(tree)
+      pathTraverser1.state should be (pathTraversal1(tree))
+    }
   }
 
   it should "be valid in SimpleInterpreter.scala" in {
     val tree = fromFile("traversal/SimpleInterpreter.scala")
-    global.ask { () => pathTraverser1.traverse(tree) should be (pathTraversal1(tree)) }
+    global.ask { () =>
+      pathTraverser1.traverse(tree)
+      pathTraverser1.state should be (pathTraversal1(tree))
+    }
   }
 
   object pathTraverser2 extends {
     val universe : TraversalTest.this.global.type = TraversalTest.this.global
-  } with HierarchicTraversal {
+  } with ScopingTraversal with OptimizingTraversal {
     import universe._
 
     type State = (List[Tree], Set[(Option[Tree], Tree)])
     def emptyState : State = (Nil, Set.empty)
 
-    def add(tree : Tree) : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
-      val enter = (state : State) => (state._1, state._2 + (state._1.headOption -> tree))
+    def add(tree : Tree) {
+      transform(state => (state._1, state._2 + (state._1.headOption -> tree)))
     }
 
-    def enter(tree : Tree) : TraversalStep[Tree, State] = new TraversalStep[Tree, State] {
-      val enter = (state : State) => (tree :: state._1, state._2)
-      val leave = Some((state : State) => state._1 match {
+    def enter(tree : Tree) {
+      transform(state => (tree :: state._1, state._2), state => state._1 match {
         case x :: xs if x == tree => (xs, state._2)
         case _ => state
       })
     }
 
     val step = optimize {
-      state => {
-        case dd : DefDef =>
-          dd.vparamss.flatten.foldLeft(maintain)((state, arg) => state and add(arg)) and enter(dd)
-        case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>
-          add(varDef)
-      }
+      case dd : DefDef =>
+        dd.vparamss.flatten.foreach(add(_))
+        enter(dd)
+      case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>
+        add(varDef)
     }
   }
 
@@ -98,7 +100,8 @@ class TraversalTest extends AbideTest {
   }
 
   def niceTest(tree : global.Tree) {
-    val fast = pathTraverser2.traverse(tree)._2
+    pathTraverser2.traverse(tree)
+    val fast = pathTraverser2.state._2
     val naive = pathTraversal2(tree)
 
     def simplify(set: Set[(Option[global.Tree], global.Tree)]) : Set[String] = {

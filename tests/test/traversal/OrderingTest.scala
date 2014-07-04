@@ -8,22 +8,14 @@ class OrderingTest extends AbideTest {
 
   object stackingTraverser extends {
     val universe : OrderingTest.this.global.type = OrderingTest.this.global
-  } with Traversal {
+  } with ScopingTraversal {
     import universe._
 
     type State = List[Tree]
     def emptyState : State = Nil
 
-    type Step = Tree => TraversalStep[Tree, State]
-
-    def apply(tree : Tree, state : List[Tree]) : Option[(State, Option[State => State])] = {
-      val stepped = step.apply(tree)
-      Some(stepped.enter(state) -> stepped.leave)
-    }
-
-    val step : Step = (tree : Tree) => new TraversalStep[Tree, State] {
-      val enter = (state : State) => tree :: state
-      val leave : Option[State => State] = Some((state : State) => state match {
+    val step : PartialFunction[Tree, Unit] = {
+      case tree => transform(tree :: _, state => state match {
         case x :: xs if x == tree => xs
         case _ => state
       })
@@ -42,16 +34,25 @@ class OrderingTest extends AbideTest {
       }
     """)
 
-    global.ask { () => stackingTraverser.traverse(tree).isEmpty should be (true) }
+    global.ask { () =>
+      stackingTraverser.traverse(tree)
+      stackingTraverser.state.isEmpty should be (true)
+    }
   }
 
   it should "and in non-trivial code (AddressBook.scala)" in {
     val tree = fromFile("traversal/AddressBook.scala")
-    global.ask { () => stackingTraverser.traverse(tree).isEmpty should be (true) }
+    global.ask { () =>
+      stackingTraverser.traverse(tree)
+      stackingTraverser.state.isEmpty should be (true)
+    }
   }
 
   it should "hold in non-trivial code (SimpleInterpreter.scala)" in {
     val tree = fromFile("traversal/SimpleInterpreter.scala")
-    global.ask { () => stackingTraverser.traverse(tree).isEmpty should be (true) }
+    global.ask { () =>
+      stackingTraverser.traverse(tree)
+      stackingTraverser.state.isEmpty should be (true)
+    }
   }
 }

@@ -25,36 +25,31 @@ class SpeedAnalysis extends FunSuite with TreeProvider {
     time
   }
 
-  val context = new scala.tools.abide.Context(global).asInstanceOf[scala.tools.abide.Context { val global : SpeedAnalysis.this.global.type }]
+  val context = new scala.tools.abide.Context(global).asInstanceOf[scala.tools.abide.Context { val universe : SpeedAnalysis.this.global.type }]
 
-  class FastTraversalImpl(val context : scala.tools.abide.Context) extends SimpleTraversal {
+  class FastTraversalImpl(val context : scala.tools.abide.Context) extends OptimizingTraversal {
     override val universe : SpeedAnalysis.this.global.type = SpeedAnalysis.this.global
     import universe._
 
     type State = Map[Symbol, Boolean]
     def emptyState : State = Map.empty
 
-    def ok(symbol : Symbol) : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
-      val enter = (state : State) => state + (symbol -> true)
-    }
-
-    def nok(symbol : Symbol) : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
-      val enter = (state : State) => state + (symbol -> state.getOrElse(symbol, false))
-    }
-
     val step = optimize {
       case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>
-        nok(varDef.symbol)
+        transform(state => state + (varDef.symbol -> state.getOrElse(varDef.symbol, false)))
       case q"$rcv = $expr" =>
-        ok(rcv.symbol)
+        transform(_ + (rcv.symbol -> true))
     }
   }
 
-  val fastTraverser = FusedTraversal(global)((1 to processorCount).map { x => new FastTraversalImpl(context) } : _*).force
+  val fastTraverser = Fuse(global)((1 to processorCount).map { x => new FastTraversalImpl(context) } : _*).force
 
-  def traverseFast(tree : Tree) : List[Symbol] = fastTraverser.traverse(tree).toSeq.flatMap {
-    x => x.asInstanceOf[Map[Symbol, Boolean]].collect { case (a, false) => a }
-  }.toList
+  def traverseFast(tree : Tree) : List[Symbol] = {
+    fastTraverser.traverse(tree)
+    fastTraverser.traversals.toList.flatMap {
+      x => x.state.asInstanceOf[Map[Symbol, Boolean]].collect { case (a, false) => a }
+    }
+  }
 
   def naiveTraverser(tree : Tree) : Map[Symbol, Boolean] = tree match {
     case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>

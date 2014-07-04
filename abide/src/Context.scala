@@ -1,6 +1,6 @@
 package scala.tools.abide
 
-import scala.tools.nsc._
+import scala.reflect.internal._
 
  /**
  * Base trait for context generator objects that provide rules with shared context.
@@ -15,14 +15,14 @@ import scala.tools.nsc._
  * @see com.typesafe.abide.sample.PublicMutable for a concrete example
  */
 trait ContextGenerator {
-  def mkContext(global : Global) : Context
+  def generateContext(universe : SymbolTable) : Context
 }
 
 /**
- * Context base-class that lets rules share common information (like the compiler instance [[global]]).
+ * Context base-class that lets rules share common information (like the compiler instance [[universe]]).
  * 
  * More information can be added to the shared context through an extension and companion class mechanism described
  * in more detail in [[ContextGenerator]].
  */
-class Context(val global : Global)
+class Context(val universe : SymbolTable)
 

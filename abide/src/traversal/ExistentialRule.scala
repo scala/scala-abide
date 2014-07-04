@@ -2,8 +2,8 @@ package scala.tools.abide.traversal
 
 import scala.reflect.internal.traversal._
 
-trait ExistentialRule extends SimpleTraversal with TraversalRule {
-  import context.global._
+trait ExistentialRule extends TraversalRule {
+  import context.universe._
 
   type Key
 
@@ -14,12 +14,8 @@ trait ExistentialRule extends SimpleTraversal with TraversalRule {
     def nok(key : Key, warning : Warning) : State = State(map + (key -> map.getOrElse(key, Some(warning))))
   }
 
-  def ok(key : Key) : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
-    val enter = (state : State) => state ok key
-  }
+  def ok(key : Key) { transform(_ ok key) }
 
-  def nok(key : Key, warning : Warning) : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
-    val enter = (state : State) => state nok (key, warning)
-  }
+  def nok(key : Key, warning : Warning) { transform(_ nok (key, warning)) }
 
 }

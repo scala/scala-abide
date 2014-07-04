@@ -4,7 +4,7 @@ import scala.tools.abide._
 import scala.tools.abide.traversal._
 
 class MatchCaseOnSeq(val context : Context) extends WarningRule {
-  import context.global._
+  import context.universe._
 
   val name = "match-case-on-seq"
 
@@ -23,11 +23,11 @@ class MatchCaseOnSeq(val context : Context) extends WarningRule {
         case cq"$pat if $guard => $expr" => pat
       }
 
-      patterns.foldLeft(maintain)((state, pat) => pat match {
+      patterns.foreach(pat => pat match {
         case q"$id(..$args)" if id.tpe != null &&
           id.tpe.resultType.typeSymbol == typeOf[scala.collection.immutable.::[Any]].typeSymbol =>
-            state and nok(Warning(scrut, pat))
-        case _ => state
+            nok(Warning(scrut, pat))
+        case _ =>
       })
   }
 }

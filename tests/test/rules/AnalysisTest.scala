@@ -11,6 +11,8 @@ trait AnalysisTest extends AbideTest {
 
   val context = new Context(global) with MutabilityChecker
 
-  def apply(rule : Traversal with TraversalRule)(tree : global.Tree) : List[rule.Warning] =
-    rule.traverse(tree.asInstanceOf[rule.universe.Tree]).warnings
+  def apply(rule : Traversal with TraversalRule)(tree : global.Tree) : List[rule.Warning] = {
+    rule.traverse(tree.asInstanceOf[rule.universe.Tree])
+    rule.state.warnings
+  }
 }

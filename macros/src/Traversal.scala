@@ -5,41 +5,27 @@ package scala.reflect.internal.traversal
  * 
  * Fusable traversal base class
  * 
- * Declared in seperate context from FusingTraversals to align with Abide rules
- * so these can be defined in their own file (nicer for users, but makes global
- * tracking complexe).
+ * Declared in seperate context from [[TraversalFusion]] to align with Abide rules
+ * so these can be defined in their own file. This provides a nicer API for users, but makes universe
+ * sharing harder. This difficulty is however completely hidden from the end-user and dealt with internally.
  *
- * @see FusingTraversals
+ * @see [[TraversalFusion]]
  */
 trait Traversal {
-  val universe : scala.reflect.api.Universe
+  protected[traversal] val universe : scala.reflect.api.Universe
   import universe._
 
   /**
-   * Step type, should return something like a PartialFunction[Tree,State]
-   * This must remain a type member so that TraversalMacros can specify optimizers
-   * on different step types.
+   * Step function that modifies internal traversal state.
    *
-   * @see TraversalMacros
+   * Must be a value member of the [[Traversal]] class since the optimizer macro
+   * needs to inject class discoveries somewhere (ie. it adds members to PartialFunction subtype)
    */
-  type Step
-
-  /**
-   * Actual step value.
-   * Must be a value member of the traversal class since the optimizer macros
-   * need to inject their discoveries somewhere (ie. member of the Step type)
-   */
-  val step : Step
-
-  /** Meat and potatos of step application (since we don't actually know the exact
-    * shape of the step function at this point)
-    * However, we DO know that we'll be transforming state on tree visit (ie. args)
-    */
-  def apply(tree : Tree, state : State) : Option[(State, Option[State => State])]
+  val step : PartialFunction[Tree, Unit]
 
   /**
    * State type that is trundled along during traversal (no constraints since
-   * TraversalSteps will actually act on the state type.
+   * state updates will actually act on the state type).
    *
    * @see TraversalStep
    * @see FusingTraversals
@@ -49,18 +35,37 @@ trait Traversal {
   /** Initial state value used during traversal */
   def emptyState : State
 
-  private lazy val fused : FusedTraversal { val universe : Traversal.this.universe.type } = new FusedTraversal {
-    val universe : Traversal.this.universe.type = Traversal.this.universe
-    val traversals = Seq(Traversal.this.asInstanceOf[TraversalType])
-    val emptyStates = Seq(Traversal.this.emptyState)
+  private var _state : State = _
+
+  /**
+   * Current traversal state.
+   *
+   * State is maintained internally to enable foreach traversals. These traversals will use the [[transform]]
+   * method in each step to update the internal state. Typically, helper methods will be provided for use in the [[step]]
+   * partial function so [[transform]] doesn't need to be accessed directly.
+   */
+  def state : State = if (_state != null) _state else {
+    scala.sys.error("Attempted to access traversal state before initialization!")
   }
 
-  def fuse(traversals : Traversal { val universe : Traversal.this.universe.type }*) :
-    FusedTraversal { val universe : Traversal.this.universe.type } = traversals.foldLeft(fused) {
-      (acc, traversal) => acc.fuse(traversal)
-    }
+  /** Updates the internal traversal state by applying [[f]] to the current internal state. */
+  def transform(f : State => State) {
+    _state = f(state)
+  }
 
-  def traverse(tree : Tree) : State = {
-    fused.traverse(tree)(this.asInstanceOf[fused.TraversalType]).asInstanceOf[State]
+  /**
+   * Sets up traversal after a previous run (or for initial run) basically by copying the [[emptyState]] result to the traversal's
+   * internal state variable
+   */
+  def init {
+    _state = emptyState
+  }
+
+  /* Cache only used for debugging, see [[traverse]] */
+  private lazy val fused = Fuse(universe)(this.asInstanceOf[Traversal { val universe : Traversal.this.universe.type }])
+
+  /** Perform traversal directly without fusing, mostly for testing purposes */
+  def traverse(tree : Tree) {
+    fused.traverse(tree)
   }
 }

@@ -130,88 +130,27 @@ object TraversalMacros {
       case _ => None
     }
 
-    q"NextExpansion($classes, $pf)"
-  }
-
-  /** Extract the classes from a function that gives access to state in the
-    * traversal step. The function must have the following shape:
-    * 
-    *   optimize {
-    *     state => {
-    *       case dd : DefDef => 
-    *       case vd : ValDef =>
-    *     }
-    *   }
-    */
-  def optimizeStateful_impl(c : blackbox.Context)
-                           (f : c.Tree) = {
-
-    import c.universe._
-
-    f match {
-      case q"($stateArg) => { case ..$cases }" =>
-        val classes = extractClasses(c)(cases)
-        q"StateExpansion($classes, $f)"
-      case _ =>
-        q"StateExpansion(None, $f)"
-    }
+    q"ClassExtraction($classes, $pf)"
   }
 }
 
-trait TraversalMacros extends Traversal {
-  import universe._
-  def maintain : TraversalStep[Tree, State] = new SimpleStep[Tree, State] {
-    val enter : State => State = x => x
-  }
-}
-
-/** SimpleTraversal
-  * 
-  * Wrapper class for TraversalMacros.optimize_impl
-  */
-trait SimpleTraversal extends TraversalMacros {
-  import universe._
-
-  type Step = PartialFunction[Tree, TraversalStep[Tree, State]]
-
-  case class NextExpansion (
-    classes : Option[List[Class[_]]],
-    pf      : PartialFunction[Tree, TraversalStep[Tree,State]]
-  ) extends PartialFunction[Tree,TraversalStep[Tree,State]] {
-    def isDefinedAt(tree : Tree) : Boolean = pf.isDefinedAt(tree)
-    def apply(tree : Tree) : TraversalStep[Tree,State] = pf.apply(tree)
-  }
-
-  def optimize(pf : PartialFunction[Tree, TraversalStep[Tree, State]]) :
-              PartialFunction[Tree, TraversalStep[Tree, State]] = macro TraversalMacros.optimize_impl
-
-  lazy val lifted = step.lift
-
-  def apply(tree : Tree, state : State) : Option[(State, Option[State => State])] = {
-    lifted.apply(tree).map(step => step.enter(state) -> step.leave)
-  }
-}
-
-/* HierarchicTraversal
- * 
- * Wrapper class for TraversalMacros.optimizeStateful_impl
+/**
+ * Traversal class that provides the optimize macro which extracts the class information
+ * needed by [[TraversalFusion]] to actually perform fusing.
+ *
+ * @see [[TraversalFusion]]
  */
-trait HierarchicTraversal extends TraversalMacros {
+trait OptimizingTraversal extends Traversal {
   import universe._
 
-  type Step = State => PartialFunction[Tree, TraversalStep[Tree, State]]
-
-  case class StateExpansion (
+  case class ClassExtraction (
     classes : Option[List[Class[_]]],
-    f       : State => PartialFunction[Tree,TraversalStep[Tree,State]]
-  ) extends (State => PartialFunction[Tree,TraversalStep[Tree,State]]) {
-    def apply(state : State) : PartialFunction[Tree,TraversalStep[Tree,State]] = f.apply(state)
+    pf      : PartialFunction[Tree, Unit]
+  ) extends PartialFunction[Tree,Unit] {
+    def isDefinedAt(tree : Tree) : Boolean = pf.isDefinedAt(tree)
+    def apply(tree : Tree) : Unit = pf.apply(tree)
   }
 
-  def optimize(f : State => PartialFunction[Tree, TraversalStep[Tree, State]]) : 
-              State => PartialFunction[Tree, TraversalStep[Tree, State]] = macro TraversalMacros.optimizeStateful_impl
-
-  def apply(tree : Tree, state : State) : Option[(State, Option[State => State])] = {
-    step.apply(state).lift.apply(tree).map(step => step.enter(state) -> step.leave)
-  }
+  def optimize(pf : PartialFunction[Tree, Unit]) : PartialFunction[Tree, Unit] = macro TraversalMacros.optimize_impl
 }
+

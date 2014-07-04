@@ -1,6 +1,6 @@
 package scala.tools.abide
 
-import scala.tools.nsc._
+import scala.reflect.internal._
 
 /**
  * The bottom [[ContextGenerator]] that will be used if no other rule requires any extra context.
@@ -8,7 +8,7 @@ import scala.tools.nsc._
  * @see [[ContextGenerator]]
  */
 object Rule extends ContextGenerator {
-  def mkContext(global : Global) : Context = new Context(global)
+  def generateContext(universe : SymbolTable) : Context = new Context(universe)
 }
 
 /**

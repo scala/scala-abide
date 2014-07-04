@@ -4,7 +4,7 @@ import scala.tools.abide._
 import scala.tools.abide.traversal._
 
 class UnusedMember(val context : Context) extends ExistentialRule {
-  import context.global._
+  import context.universe._
 
   val name = "unused-member"
   type Key = Symbol
@@ -48,7 +48,7 @@ class UnusedMember(val context : Context) extends ExistentialRule {
           paramAccessors.find(tree.symbol.name == _.name).toSeq :+ tree.symbol
         } else
           Seq(tree.symbol)
-      affectedSymbols.foldLeft(maintain) { (state, sym) => state and ok(sym) }
+      affectedSymbols.foreach(ok(_))
   }
 }
 

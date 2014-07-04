@@ -61,7 +61,7 @@ class AbidePlugin(val global: Global) extends Plugin {
 
     contextGenerators.foldLeft(List.empty[((ru.ClassSymbol, ru.ClassMirror), Context)]) {
       case (list, (rule @ (ruleSymbol, ruleMirror), generator)) =>
-        val context = generator.mkContext(global)
+        val context = generator.generateContext(global)
         val bottomCtx = list.foldLeft(context) { case (acc, (rule, ctx)) => generalize(acc, ctx) }
         (rule -> bottomCtx) :: (list map { case (rule, ctx) => rule -> generalize(ctx, bottomCtx) })
     }.toMap
@@ -90,7 +90,7 @@ class AbidePlugin(val global: Global) extends Plugin {
   }
 
   private lazy val analyzers = ruleAnalyzers.groupBy(_._2).toList.map { case (generator, rules) =>
-    generator.mkAnalyzer(global, rules.map(_._1)).asInstanceOf[Analyzer { val global : AbidePlugin.this.global.type }]
+    generator.generateAnalyzer(global, rules.map(_._1)).asInstanceOf[Analyzer { val universe : AbidePlugin.this.global.type }]
   }
 
   private lazy val presenter = new presentation.ConsolePresenter(global).asInstanceOf[Presenter { val global : AbidePlugin.this.global.type }]
