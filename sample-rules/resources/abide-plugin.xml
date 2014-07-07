@@ -1,4 +1,5 @@
 <plugin>
+  <rule class="com.typesafe.abide.sample.FixedNameOverrides" />
   <rule class="com.typesafe.abide.sample.MatchCaseOnSeq" />
   <rule class="com.typesafe.abide.sample.PublicMutable" />
   <rule class="com.typesafe.abide.sample.RenamedDefaultParameter" />
