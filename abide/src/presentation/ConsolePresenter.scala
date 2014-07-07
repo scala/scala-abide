@@ -4,6 +4,8 @@ import scala.tools.nsc._
 import scala.tools.abide._
 
 /**
+ * ConsolePresenter
+ *
  * Simple [[Presenter]] that outputs warnings as compiler warnings
  */
 class ConsolePresenter(protected val global : Global) extends Presenter {

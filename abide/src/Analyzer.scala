@@ -14,7 +14,7 @@ import scala.tools.abide.presentation._
  * [[AnalyzerGenerator.subsumes]] field describes which generators can be skipped once this
  * one has been created.
  *
- * @see [[traversal.TraversalAnalyzerGenerator]] for a concrete example
+ * @see [[traversal.FusingTraversalAnalyzerGenerator]] for a concrete example
  * @see [[Analyzer]]
  */
 trait AnalyzerGenerator {
@@ -39,7 +39,7 @@ trait AnalyzerGenerator {
  * traversal logic outside of the rules. This logic should be contained inside the [[Analyzer]] class
  * that will apply it's contained rules to provided trees.
  *
- * @see [[traversal.TraversalAnalyzer]] for a concrete example
+ * @see [[traversal.FusingTraversalAnalyzer]] for a concrete example
  * @see [[AnalyzerGenerator]]
  */
 trait Analyzer {

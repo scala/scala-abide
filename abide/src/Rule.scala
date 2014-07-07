@@ -17,6 +17,7 @@ object Rule extends ContextGenerator {
 trait Rule {
   /**
    * Rule context, which provides the rule with a compiler instance and more if necessary.
+   *
    * @see [[Context]]
    */
   val context : Context
@@ -37,7 +38,11 @@ trait Rule {
     def warnings : List[Warning]
   }
 
-  /** The state type we're dealing with in this rule. @see [[RuleState]] */
+  /**
+   * The state type we're dealing with in this rule.
+   *
+   * @see [[RuleState]]
+   */
   type State <: RuleState
 
   /**

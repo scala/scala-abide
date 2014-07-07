@@ -4,6 +4,8 @@ import scala.tools.nsc._
 import scala.tools.abide._
 
 /**
+ * Presenter
+ *
  * Base class for result "presentation". A presenter instance will receive warnings as input
  * from the analyzer in a given CompilationUnit and should use these to generate output.
  *

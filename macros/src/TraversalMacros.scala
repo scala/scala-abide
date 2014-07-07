@@ -138,6 +138,7 @@ object TraversalMacros {
  * Traversal class that provides the optimize macro which extracts the class information
  * needed by [[TraversalFusion]] to actually perform fusing.
  *
+ * @see [[Traversal]]
  * @see [[TraversalFusion]]
  */
 trait OptimizingTraversal extends Traversal {

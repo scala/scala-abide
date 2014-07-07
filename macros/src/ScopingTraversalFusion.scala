@@ -3,6 +3,12 @@ package scala.reflect.internal.traversal
 /**
  * ScopingTraversalFusion
  *
+ * Extension of [[TraversalFusion]] that supports [[ScopingTraversal]] traversals as well as
+ * standard [[Traversal]] traversals. The scoping traversals are handled by tracking `leaver`
+ * functions for each traversal which are applied as transformations (@see [[Traversal.transform]]) once
+ * the traversal leaves a certain tree node.
+ *
+ * @see [[ScopingTraversal]]
  */
 trait ScopingTraversalFusion extends TraversalFusion {
   import universe._

@@ -48,7 +48,7 @@ trait Traversal {
     scala.sys.error("Attempted to access traversal state before initialization!")
   }
 
-  /** Updates the internal traversal state by applying [[f]] to the current internal state. */
+  /** Updates the internal traversal state by applying function _f_ to the current internal state. */
   def transform(f : State => State) {
     _state = f(state)
   }

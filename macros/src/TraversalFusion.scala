@@ -15,8 +15,10 @@ trait TraversalFusion {
   /** List of all traversals we're fusing */
   val traversals : Seq[TraversalType]
 
+  /** Adds a new [[Traversal]] to the list of fused traversals */
   def fuse(that : TraversalType) : FusionType = Fuse(universe)(traversals :+ that : _*)
 
+  /** Adds all the traversals contained in a [[TraversalFusion]] to the list of fused traversals */
   def fuse(that : FusionType) : FusionType = Fuse(universe)(traversals ++ that.traversals : _*)
 
   /**
@@ -71,6 +73,7 @@ trait TraversalFusion {
     rec(tree)
   }
 
+  /** Applies the fused traversals to a tree (in a foreach manner) */
   def traverse(tree : Tree) {
     traversals.foreach(_.init)
     foreach(tree)(tree => getTraversals(tree).foreach { traversal =>

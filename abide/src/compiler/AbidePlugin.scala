@@ -8,13 +8,32 @@ import scala.tools.abide._
 import scala.tools.abide.presentation._
 
 /**
+ * AbidePlugin
+ *
  * Compiler plugin for running the Abide framework. The plugin runs right after `typer` and uses
  * a series of rules and analyzers to perform actual verification. It then uses a [[presentation.Presenter]] to
  * output the result of the verification.
  *
- * Rules should be specified to the plugin using the -P:abide:ruleClass:"path.to.rule.Class" option. This option
- * can (and should) appear multiple times to specify all the rules the plugin should deal with. Each rule will
- * then be loaded from classpath and examined to handle context and analyzer generation.
+ * The plugin accepts a series of abide-specific arguments (use as -P:abide:argName:argValue) :
+ *
+ *  - ruleClass :
+ *      Specifies the full name of each rule that should be handled by the plugin (eg. com.typesafe.abide.samples.UnusedMember)
+ *      This option can (and should) appear multiple times in the arguments array to specify all rules we're dealing with.
+ *
+ *  - analyzerClass :
+ *      Specifies the full name of all analyzer generator objects that can be used to instantiate rules. In practice, since the
+ *      analyzer generator is actually a member of the rule, this argument can be omitted. However, the subsumption mechanism
+ *      (see [[AnalyzerGenerator]]) enables users to provide more powerful analyzers that will replace the default analyzer
+ *      statically specified in the class description. Such extension analyzers _must_ appear in an `analyzerClass` argument.
+ *      As in ruleClass, analyzerClass can (and generally should) appear multiple times in the arguments array.
+ *
+ *  - abidecp :
+ *      Abide can split up rule sets into multiple jars, so when using Abide in compiler plugin mode, these jars need to be
+ *      specified to the compiler so it can actually load the rules. Therefore, we provide the `abidecp` option that must consist
+ *      in a colon-separated list of classpath entries pointing to rule locations.
+ *
+ * Note that unlike analyzers, rule context cannot be overriden by arguments and must be specified in the rule's companion object,
+ * since configurations are custom tailored to single rules (for more information, see [[ContextGenerator]]).
  *
  * @see [[scala.tools.abide.ContextGenerator]]
  * @see [[scala.tools.abide.AnalyzerGenerator]]
@@ -37,6 +56,12 @@ class AbidePlugin(val global: Global) extends Plugin {
     val ruleMirror = mirror reflectClass ruleSymbol
 
     ruleSymbol -> ruleMirror
+  }
+
+  private lazy val analyzerGenerators = for (analyzerClass <- analyzerClasses) yield {
+    val analyzerSymbol = mirror staticModule analyzerClass
+    val analyzerMirror = mirror reflectModule analyzerSymbol
+    analyzerMirror.instance.asInstanceOf[AnalyzerGenerator]
   }
 
   private lazy val ruleContexts = {
@@ -84,7 +109,8 @@ class AbidePlugin(val global: Global) extends Plugin {
 
     val allGenerators : List[(Rule, AnalyzerGenerator)] = rules.map(rule => rule -> rule.analyzer)
     allGenerators.foldLeft(List.empty[(Rule, AnalyzerGenerator)]) { case (list, (rule, generator)) =>
-      val bottomGen = list.foldLeft(generator) { case (acc, (rule, generator)) => generalize(generator, acc) }
+      val generalized = analyzerGenerators.foldLeft(generator)((acc, gen) => generalize(gen, acc))
+      val bottomGen = list.foldLeft(generalized) { case (acc, (rule, generator)) => generalize(generator, acc) }
       (rule -> bottomGen) :: (list map { case (rule, gen) => rule -> generalize(gen, bottomGen) })
     }
   }
@@ -118,13 +144,15 @@ class AbidePlugin(val global: Global) extends Plugin {
 
   private var abideCp : String = ""
   private var ruleClasses : List[String] = Nil
+  private var analyzerClasses : List[String] = Nil
 
   override def processOptions(options: List[String], error: String => Unit) {
     for (option <- options) {
       if (option.startsWith("ruleClass:")) {
         ruleClasses ::= option.substring("ruleClass:".length)
+      } else if (option.startsWith("analyzerClass:")) {
+        analyzerClasses ::= option.substring("analyzerClass:".length)
       } else if (option.startsWith("abidecp:")) {
-        println(option)
         abideCp = option.substring("abidecp:".length)
       } else {
         scala.sys.error("Option not understood: "+option)

@@ -4,7 +4,7 @@ package scala.reflect.internal.traversal
  * object Fuse
  * 
  * Fuses multiple traversals in a way that increases overall traversal speed.
- * We use the type information we extracted in Traversals with TraversalMacros
+ * We use the type information we extracted in [[Traversal]] with [[TraversalMacros]]
  * to quickly determine which rules should be applied to the tree we're currently
  * visiting.
  *

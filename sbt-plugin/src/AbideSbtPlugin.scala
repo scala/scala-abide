@@ -53,21 +53,31 @@ object AbideSbtPlugin extends AutoPlugin {
       if (sourcePaths.filter(_.endsWith(".scala")).nonEmpty) {
         val abideCp : Seq[java.io.File] = update.value.select(configurationFilter("abide"))
 
-        val ruleClasses = abideCp.flatMap { file =>
-          val pluginXmlStream = sbt.classpath.ClasspathUtilities.toLoader(Seq(file)).getResourceAsStream("abide-plugin.xml")
+        val (ruleClasses, analyzerClasses) = {
+          var rules : Seq[String] = Seq.empty
+          var analyzers : Seq[String] = Seq.empty
 
-          if (pluginXmlStream == null) Nil else scala.xml.XML.load(pluginXmlStream) match {
-            case <plugin>{ rules @ _* }</plugin> => rules.flatMap {
-              case rule @ <rule /> => Some(rule \ "@class")
-              case _ => None
+          for (file <- abideCp) {
+            val pluginXmlStream = sbt.classpath.ClasspathUtilities.toLoader(Seq(file)).getResourceAsStream("abide-plugin.xml")
+  //          val pluginConfig = ConfigFactory.load(sbt.classpath.ClassspathUtilities.toLoader(Seq(file)), "abide-plugin")
+
+            if (pluginXmlStream != null) scala.xml.XML.load(pluginXmlStream) match {
+              case <plugin>{ elems @ _* }</plugin> => elems.foreach {
+                case rule @ <rule /> => rules :+= (rule \ "@class").text
+                case analyzer @ <analyzer /> => analyzers :+= (analyzer \ "@class").text
+                case _ => ()
+              }
+              case _ => ()
             }
-            case _ => Nil
           }
+
+          (rules, analyzers)
         }
 
-        val ruleOptions = ruleClasses.map(cls => "-P:abide:ruleClass:" + cls)
+        val ruleOpts = ruleClasses.map(cls => "-P:abide:ruleClass:" + cls)
+        val analyzerOpts = analyzerClasses.map(cls => "-P:abide:analyzerClass:" + cls)
 
-        val options = cpOpts ++ ruleOptions ++ compatibilityOpts ++ sourcePaths
+        val options = cpOpts ++ ruleOpts ++ analyzerOpts ++ compatibilityOpts ++ sourcePaths
 
         val loader : ClassLoader = sbt.classpath.ClasspathUtilities.toLoader(abideCp)
 
