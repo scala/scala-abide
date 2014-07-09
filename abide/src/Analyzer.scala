@@ -23,7 +23,7 @@ trait AnalyzerGenerator {
    * Buils a new [[Analyzer]] instance based on a compiler (scala.reflect.internal.SymbolTable), and
    * a list of rules. The [[Analyzer thus generated will then apply these rules to provided trees.
    */
-  def generateAnalyzer(universe : SymbolTable, rules : List[Rule]) : Analyzer
+  def getAnalyzer(universe : SymbolTable, rules : List[Rule]) : Analyzer
 
   /**
    * Subsumption mechanism that enables optimized or generalized analyzers to replace simpler ones.

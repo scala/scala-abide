@@ -15,7 +15,7 @@ import scala.reflect.internal._
  * @see com.typesafe.abide.sample.PublicMutable for a concrete example
  */
 trait ContextGenerator {
-  def generateContext(universe : SymbolTable) : Context
+  def getContext(universe : SymbolTable) : Context
 }
 
 /**

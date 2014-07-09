@@ -15,7 +15,7 @@ import scala.reflect.internal.traversal._
  * @see [[FusingTraversalAnalyzer]]
  */
 object FusingTraversalAnalyzerGenerator extends AnalyzerGenerator {
-  def generateAnalyzer(universe : SymbolTable, rules : List[Rule]) : FusingTraversalAnalyzer = {
+  def getAnalyzer(universe : SymbolTable, rules : List[Rule]) : FusingTraversalAnalyzer = {
     val traversalRules = rules.map(_ match {
       case t : TraversalRule => t
       case rule => scala.sys.error("Unexpected rule type for TraversalAnalyzer : " + rule.getClass)

@@ -50,7 +50,7 @@ class PublicMutableTest extends AnalysisTest {
 
     global.ask { () =>
       val syms = apply(rule)(tree).map(_.tree.symbol.toString)
-      syms.sorted should be (List("value mut"))
+      syms.sorted should be (List("value mut", "variable a"))
     }
   }
 
