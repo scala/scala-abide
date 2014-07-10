@@ -97,10 +97,10 @@ class AbidePlugin(val global: Global) extends Plugin {
     val constructorMirror = ruleMirror reflectConstructor constructorSymbol
     val context = ruleContexts(rule)
 
-    constructorMirror(context).asInstanceOf[Rule { val context : Context { val global : AbidePlugin.this.global.type } }]
+    constructorMirror(context).asInstanceOf[Rule { val context : Context { val universe : AbidePlugin.this.global.type } }]
   }
 
-  private lazy val ruleAnalyzers = {
+  private lazy val analyzers : List[(Rule => Boolean) => Analyzer { val universe : AbidePlugin.this.global.type }] = {
     def generalize(g1 : AnalyzerGenerator, g2 : AnalyzerGenerator) : AnalyzerGenerator = {
       def fix[A](a : A)(f : A => A) : A = { val na = f(a); if (na == a) na else fix(na)(f) }
       val g2Subsumes : Set[AnalyzerGenerator] = fix(g2.subsumes)(set => set ++ set.flatMap(_.subsumes))
@@ -108,15 +108,19 @@ class AbidePlugin(val global: Global) extends Plugin {
     }
 
     val allGenerators : List[(Rule, AnalyzerGenerator)] = rules.map(rule => rule -> rule.analyzer)
-    allGenerators.foldLeft(List.empty[(Rule, AnalyzerGenerator)]) { case (list, (rule, generator)) =>
+    val ruleToGenerator = allGenerators.foldLeft(List.empty[(Rule, AnalyzerGenerator)]) { case (list, (rule, generator)) =>
       val generalized = analyzerGenerators.foldLeft(generator)((acc, gen) => generalize(gen, acc))
       val bottomGen = list.foldLeft(generalized) { case (acc, (rule, generator)) => generalize(generator, acc) }
       (rule -> bottomGen) :: (list map { case (rule, gen) => rule -> generalize(gen, bottomGen) })
     }
-  }
 
-  private lazy val analyzers = ruleAnalyzers.groupBy(_._2).toList.map { case (generator, rules) =>
-    generator.getAnalyzer(global, rules.map(_._1)).asInstanceOf[Analyzer { val universe : AbidePlugin.this.global.type }]
+    ruleToGenerator.groupBy(_._2).toList.map { case (generator, rulePairs) =>
+      val rules = rulePairs.map(_._1)
+      (filter : Rule => Boolean) => {
+        val analyzer = generator.getAnalyzer(global, rules.filter(filter))
+        analyzer.asInstanceOf[Analyzer { val universe : AbidePlugin.this.global.type }]
+      }
+    }
   }
 
   private lazy val presenter = new presentation.ConsolePresenter(global).asInstanceOf[Presenter { val global : AbidePlugin.this.global.type }]
@@ -134,7 +138,10 @@ class AbidePlugin(val global: Global) extends Plugin {
 
       def apply(unit : CompilationUnit) {
         val millis = System.currentTimeMillis
-        val warnings = analyzers.flatMap(analyzer => analyzer(unit.body))
+        val warnings = analyzers.flatMap {
+          gen => gen(_ => true)(unit.body)
+        }
+
         time += System.currentTimeMillis - millis
         println("time="+time)
         presenter(unit, warnings)
