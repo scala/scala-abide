@@ -15,7 +15,7 @@ object OptimizingMacros {
 
   /** Actual extraction method */
   def extractClasses(c : blackbox.Context)
-                    (trees : List[c.Tree]) : Option[List[c.Tree]] = {
+                    (trees : List[c.Tree]) : Option[Set[c.Tree]] = {
 
     import c.universe._
 
@@ -34,19 +34,23 @@ object OptimizingMacros {
       }
     }
 
+    def treeClasses(u : Tree, classes : String*) : Set[Tree] = {
+      classes.map(cls => q"classOf[$u.${TypeName(cls)}]").toSet
+    }
+
     def treeToClass(t: Tree) : Set[Tree] = t match {
-      case Selection(universe, "internal", "reificationSupport", "SyntacticMatch"     ) => Set(q"classOf[$universe.Match]" )
-      case Selection(universe, "internal", "reificationSupport", "SyntacticVarDef"    ) => Set(q"classOf[$universe.ValDef]")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticValDef"    ) => Set(q"classOf[$universe.ValDef]")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticDefDef"    ) => Set(q"classOf[$universe.DefDef]")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticAssign"    ) => Set(q"classOf[$universe.Assign]")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticSelectTerm") => Set(q"classOf[$universe.Select]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticMatch"     ) => treeClasses(universe, "Match")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticVarDef"    ) => treeClasses(universe, "ValDef")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticValDef"    ) => treeClasses(universe, "ValDef")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticDefDef"    ) => treeClasses(universe, "DefDef")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticAssign"    ) => treeClasses(universe, "Assign")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticSelectTerm") => treeClasses(universe, "Select")
       case Selection(universe, "internal", "reificationSupport", "SyntacticApplied"   ) =>
-        Set(q"classOf[$universe.Apply]", q"classOf[$universe.ApplyToImplicitArgs]")
+        treeClasses(universe, "UnApply", "Apply", "ApplyToImplicitArgs", "ApplyImplicitView")
       case Selection(universe, "internal", "reificationSupport", "SyntacticForYield"  ) =>
-        Set(q"classOf[$universe.Apply]", q"classOf[$universe.ApplyToImplicitArgs]")
+        treeClasses(universe, "Apply", "ApplyToImplicitArgs", "ApplyImplicitView")
       case Selection(universe, "internal", "reificationSupport", "SyntacticFor"       ) =>
-        Set(q"classOf[$universe.Apply]", q"classOf[$universe.ApplyToImplicitArgs]")
+        treeClasses(universe, "Apply", "ApplyToImplicitArgs", "ApplyImplicitView")
       case _ =>
         c.warning(t.pos, "Unmanaged quasiquote:\n  " + t + "\n" +
           "You can file this warning as a bug report at https://github.com/scala/scala-abide")
@@ -68,11 +72,19 @@ object OptimizingMacros {
       }
     }
 
+    def typeClasses(tpe : Type, members : String*) : Set[Tree] = members.map { m =>
+      val memberType : Type = tpe.members.find(_.name == TypeName(m)).get.asType.toType
+      q"scala.reflect.classTag[$memberType].runtimeClass"
+    }.toSet
+
     def typeToClass(tree : Tree, t : Type) : Set[Tree] = t match {
-      case Reference(tpe, "Select") => Set(q"scala.reflect.classTag[$t].runtimeClass")
-      case Reference(tpe, "Ident" ) => Set(q"scala.reflect.classTag[$t].runtimeClass")
-      case Reference(tpe, "DefDef") => Set(q"scala.reflect.classTag[$t].runtimeClass")
-      case Reference(tpe, "ValDef") => Set(q"scala.reflect.classTag[$t].runtimeClass")
+      case Reference(tpe, "Match" ) => typeClasses(tpe, "Match")
+      case Reference(tpe, "Ident" ) => typeClasses(tpe, "Ident")
+      case Reference(tpe, "Select") => typeClasses(tpe, "Select")
+      case Reference(tpe, "DefDef") => typeClasses(tpe, "DefDef")
+      case Reference(tpe, "ValDef") => typeClasses(tpe, "ValDef")
+      case Reference(tpe, "Assign") => typeClasses(tpe, "Assign")
+      case Reference(tpe, "Apply" ) => typeClasses(tpe, "Apply", "ApplyToImplicitArgs", "ApplyImplicitView")
       case _ =>
         c.warning(tree.pos, "Unmanaged type:\n  " + t + "\n" +
           "You can file this warning as a bug report at https://github.com/scala/scala-abide")
@@ -114,7 +126,7 @@ object OptimizingMacros {
     }
 
     val allClasses = trees.map(extractorToClass(_))
-    if (allClasses.forall(_.nonEmpty)) Some(allClasses.flatten) else None
+    if (allClasses.forall(_.nonEmpty)) Some(allClasses.flatten.toSet) else None
   }
 
   /** Extract the classes from a traditional partial function from trees to
@@ -133,7 +145,7 @@ object OptimizingMacros {
 
     import c.universe._
 
-    val classes : Option[List[Tree]] = pf match {
+    val classes : Option[Set[Tree]] = pf match {
       case q"{ case ..$cases }" => extractClasses(c)(cases)
       case _ => None
     }
@@ -153,7 +165,7 @@ trait OptimizingTraversal extends Traversal {
   import universe._
 
   case class ClassExtraction (
-    classes : Option[List[Class[_]]],
+    classes : Option[Set[Class[_]]],
     pf      : PartialFunction[Tree, Unit]
   ) extends PartialFunction[Tree,Unit] {
     def isDefinedAt(tree : Tree) : Boolean = pf.isDefinedAt(tree)
