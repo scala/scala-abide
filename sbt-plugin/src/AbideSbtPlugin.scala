@@ -59,7 +59,6 @@ object AbideSbtPlugin extends AutoPlugin {
 
           for (file <- abideCp) {
             val pluginXmlStream = sbt.classpath.ClasspathUtilities.toLoader(Seq(file)).getResourceAsStream("abide-plugin.xml")
-  //          val pluginConfig = ConfigFactory.load(sbt.classpath.ClassspathUtilities.toLoader(Seq(file)), "abide-plugin")
 
             if (pluginXmlStream != null) scala.xml.XML.load(pluginXmlStream) match {
               case <plugin>{ elems @ _* }</plugin> => elems.foreach {

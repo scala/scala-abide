@@ -28,7 +28,7 @@ object AbideBuild extends Build {
     ).dependsOn(macros)
 
   lazy val sbt = Project("sbt-abide", file("sbt-plugin"))
-    .settings(abideSettings : _*)
+    .settings(sharedSettings : _*)
     .settings(
       sbtPlugin    := true,
       scalaVersion := "2.10.4"
@@ -37,14 +37,14 @@ object AbideBuild extends Build {
   lazy val tests = Project("tests", file("tests"))
     .settings(sharedSettings : _*)
     .settings(
-      scalaSource in Test       <<= (baseDirectory in Test)(_ / "test"),
+      scalaSource       in Test <<= (baseDirectory in Test)(_ / "test"),
       resourceDirectory in Test <<= (baseDirectory in Test)(_ / "resources"),
+      testOptions       in Test  += Tests.Argument("-oF"),
       libraryDependencies        += "org.scalatest" %% "scalatest" % "2.1.7" % "test",
-      testOptions in Test        += Tests.Argument("-oF"),
       packagedArtifacts          := Map.empty
     ).dependsOn(macros, abide)
 
-  lazy val root  = Project("root", file("."))
+  lazy val root = Project("root", file("."))
     .settings(
       test in Test      := (test in tests in Test).value,
       packagedArtifacts := Map.empty
