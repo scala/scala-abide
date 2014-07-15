@@ -1,9 +1,9 @@
-package scala.tools.abide.test.traversal
+package scala.reflect.internal.traversal.test
 
-import scala.tools.abide.test._
 import scala.reflect.internal.traversal._
+import org.scalatest._
 
-class OrderingTest extends AbideTest {
+class OrderingTest extends FlatSpec with Matchers with TreeProvider {
   import global._
 
   object stackingTraverser extends {

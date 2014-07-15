@@ -1,10 +1,9 @@
-package scala.tools.abide.test.macros
+package scala.reflect.internal.traversal.test
 
-import scala.tools.abide.test._
 import scala.reflect.internal.traversal._
 import org.scalatest._
 
-class MacroTest extends AbideTest {
+class MacroTest extends FlatSpec with Matchers with TreeProvider {
 
   trait TestingTraversal extends OptimizingTraversal {
     val universe : MacroTest.this.global.type = MacroTest.this.global

@@ -65,5 +65,4 @@ trait Rule {
 
   /** We require a name field to manage rules (enable/disable) and pretty-print them */
   val name : String
-//  val description : String
 }

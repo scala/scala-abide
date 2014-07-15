@@ -1,0 +1,11 @@
+<plugin>
+  <rule class="com.typesafe.abide.sample.FixedNameOverrides" />
+  <rule class="com.typesafe.abide.sample.MatchCaseOnSeq" />
+  <rule class="com.typesafe.abide.sample.PublicMutable" />
+  <rule class="com.typesafe.abide.sample.RenamedDefaultParameter" />
+  <rule class="com.typesafe.abide.sample.StupidRecursion" />
+  <rule class="com.typesafe.abide.sample.LocalValInsteadOfVar" />
+  <rule class="com.typesafe.abide.sample.MemberValInsteadOfVar" />
+  <rule class="com.typesafe.abide.sample.UnusedMember" />
+  <rule class="com.typesafe.abide.sample.MonadicFors" />
+</plugin>

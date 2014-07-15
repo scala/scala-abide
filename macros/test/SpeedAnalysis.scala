@@ -1,6 +1,5 @@
-package scala.tools.abide.test.traversal
+package scala.reflect.internal.traversal.test
 
-import scala.tools.abide.util._
 import scala.reflect.internal.traversal._
 import org.scalatest.FunSuite
 
@@ -25,9 +24,7 @@ class SpeedAnalysis extends FunSuite with TreeProvider {
     time
   }
 
-  val context = new scala.tools.abide.Context(global).asInstanceOf[scala.tools.abide.Context { val universe : SpeedAnalysis.this.global.type }]
-
-  class FastTraversalImpl(val context : scala.tools.abide.Context) extends OptimizingTraversal {
+  class FastTraversalImpl extends OptimizingTraversal {
     override val universe : SpeedAnalysis.this.global.type = SpeedAnalysis.this.global
     import universe._
 
@@ -42,7 +39,7 @@ class SpeedAnalysis extends FunSuite with TreeProvider {
     }
   }
 
-  val fastTraverser = Fuse(global)((1 to processorCount).map { x => new FastTraversalImpl(context) } : _*).force
+  val fastTraverser = Fuse(global)((1 to processorCount).map { x => new FastTraversalImpl } : _*).force
 
   def traverseFast(tree : Tree) : List[Symbol] = {
     fastTraverser.traverse(tree)

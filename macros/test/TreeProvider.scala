@@ -1,4 +1,4 @@
-package scala.tools.abide.util
+package scala.reflect.internal.traversal.test
 
 import scala.tools.nsc.io._
 import scala.tools.nsc.interactive._

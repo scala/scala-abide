@@ -1,12 +1,9 @@
-package scala.tools.abide.test.traversal
+package scala.reflect.internal.traversal.test
 
-import scala.tools.abide._
-import scala.tools.abide.test._
 import scala.reflect.internal.traversal._
+import org.scalatest._
 
-class TraversalTest extends AbideTest {
-
-  val context = new Context(global)
+class TraversalTest extends FlatSpec with Matchers with TreeProvider {
 
   object pathTraverser1 extends {
     val universe : TraversalTest.this.global.type = TraversalTest.this.global

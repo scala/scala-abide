@@ -91,7 +91,7 @@ trait Traversal {
   def result : State = if (!_error.isDefined) state else throw _error.get
 
   /** Updates the internal traversal state by applying function _f_ to the current internal state. */
-  def transform(f : State => State) {
+  protected[traversal] def transform(f : State => State) {
     _state = f(state)
   }
 
@@ -99,7 +99,7 @@ trait Traversal {
    * Sets up traversal after a previous run (or for initial run) basically by copying the [[emptyState]] result to the traversal's
    * internal state variable
    */
-  def init {
+  protected[traversal] def init {
     _state = emptyState
     _error = None
   }
