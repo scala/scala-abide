@@ -1,0 +1,3 @@
+<plugin>
+  <rule class="com.typesafe.abide.extra.FixedNameOverrides" />
+</plugin>

@@ -6,6 +6,8 @@ import scala.tools.abide.traversal._
 
 class ErroneousRuleTest extends AbideTest {
 
+  override def silent = true
+
   val context = new Context(global)
   import global._
 

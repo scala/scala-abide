@@ -1,10 +1,9 @@
-package com.typesafe.abide.sample.test
+package com.typesafe.abide.core.test
 
 import scala.tools.abide.test.traversal._
-import com.typesafe.abide.sample._
+import com.typesafe.abide.core._
 
 class MatchCaseOnSeqTest extends TraversalTest {
-  import scala.tools.abide.traversal._
 
   val rule = new MatchCaseOnSeq(context)
 

@@ -13,6 +13,8 @@ import scala.reflect.internal.util._
  */
 trait CompilerProvider {
 
+  def silent : Boolean = false
+
   lazy val global : Global = {
 
     def urls(classLoader: java.lang.ClassLoader): List[String] = classLoader match {
@@ -30,11 +32,12 @@ trait CompilerProvider {
       settings.bootclasspath.append(source)
     }
 
-    val compiler = new Global(settings, new Reporter {
-      def info0(pos : Position, msg : String, severity : Severity, force : Boolean) : Unit = {
-        //println(msg)
-        ()
+    val compiler = new Global(settings, if (silent) {
+      new Reporter {
+        def info0(pos : Position, msg : String, severity : Severity, force : Boolean) = ()
       }
+    } else {
+      new ConsoleReporter(settings)
     })
 
     try {

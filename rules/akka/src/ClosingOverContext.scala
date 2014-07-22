@@ -22,7 +22,7 @@ class ClosingOverContext(val context : Context) extends ScopingRule {
   lazy val onCompleteSym = flowSym.toType.members.find(_.name == TermName("onComplete")).get
 
   val step = optimize {
-    case q"$caller(..$args)" if caller.symbol == onCompleteSym =>
+    case tree @ q"$caller(..$mat)(..$cb)" if caller.symbol == onCompleteSym =>
       enter(caller.symbol)
     case s : Select if s.symbol == contextSym && state.parent.isDefined =>
       nok(Warning(s))

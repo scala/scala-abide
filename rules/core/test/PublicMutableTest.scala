@@ -1,7 +1,7 @@
-package com.typesafe.abide.sample.test
+package com.typesafe.abide.core.test
 
 import scala.tools.abide.test.traversal._
-import com.typesafe.abide.sample._
+import com.typesafe.abide.core._
 
 class PublicMutableTest extends TraversalTest {
   import scala.tools.abide.traversal._
@@ -34,6 +34,26 @@ class PublicMutableTest extends TraversalTest {
       class Mut { private var a : Int = 0 }
       class Toto {
         private val toto : Mut = new Mut
+      }
+    """)
+
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+  }
+
+  it should "not matter in private[this] members" in {
+    val tree = fromString("""
+      class Toto {
+        private[this] val sb = new StringBuilder
+      }
+    """)
+
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+  }
+
+  it should "not matter for self-member" in {
+    val tree = fromString("""
+      trait Toto extends Mutable { self =>
+        val i = 1
       }
     """)
 

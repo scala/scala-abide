@@ -1,4 +1,4 @@
-package com.typesafe.abide.sample
+package com.typesafe.abide.core
 
 import scala.tools.abide._
 import scala.tools.abide.traversal._
@@ -10,7 +10,7 @@ class MatchCaseOnSeq(val context : Context) extends WarningRule {
 
   case class Warning(scrut : Tree, mtch : Tree) extends RuleWarning {
     val pos = mtch.pos
-    val message = s"Seq typed scrutinee $scrut cannot match against :: typed case $mtch"
+    val message = s"Seq typed scrutinee $scrut shouldn't be matched against :: typed case $mtch"
   }
 
   lazy val seqSymbol = rootMirror.getClassByName(TypeName("scala.collection.Seq"))

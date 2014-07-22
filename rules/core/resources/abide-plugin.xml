@@ -1,0 +1,9 @@
+<plugin>
+  <rule class="com.typesafe.abide.core.MatchCaseOnSeq" />
+  <rule class="com.typesafe.abide.core.PublicMutable" />
+  <rule class="com.typesafe.abide.core.RenamedDefaultParameter" />
+  <rule class="com.typesafe.abide.core.StupidRecursion" />
+  <rule class="com.typesafe.abide.core.LocalValInsteadOfVar" />
+  <rule class="com.typesafe.abide.core.MemberValInsteadOfVar" />
+  <rule class="com.typesafe.abide.core.UnusedMember" />
+</plugin>

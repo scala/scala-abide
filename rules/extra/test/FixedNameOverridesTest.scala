@@ -1,7 +1,7 @@
-package com.typesafe.abide.sample.test
+package com.typesafe.abide.extra.test
 
 import scala.tools.abide.test.traversal._
-import com.typesafe.abide.sample._
+import com.typesafe.abide.extra._
 
 class FixedNameOverridesTest extends TraversalTest {
 

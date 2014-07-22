@@ -38,16 +38,25 @@ object AbideBuild extends Build {
       scalaVersion := "2.10.4"
     )
 
-  lazy val sampleRules = Project("abide-samples", file("rules/samples"))
+  lazy val coreRules = Project("abide-core", file("rules/core"))
     .settings(sharedSettings : _*)
     .dependsOn(abide % "compile->compile;test->test")
 
   lazy val akkaRules = Project("abide-akka", file("rules/akka"))
     .settings(sharedSettings : _*)
-    .settings(libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.3" % "test")
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.typesafe.akka" %% "akka-actor" % "2.3.3" % "test",
+        "com.typesafe.akka" %% "akka-stream-experimental" % "0.4" % "test"
+      )
+    )
     .dependsOn(abide % "compile->compile;test->test")
 
-  lazy val rules = Seq(sampleRules, akkaRules)
+  lazy val extraRules = Project("abide-extra", file("rules/extra"))
+    .settings(sharedSettings : _*)
+    .dependsOn(abide % "compile->compile;test->test")
+
+  lazy val rules = Seq(coreRules, akkaRules, extraRules)
 
   lazy val allProjects = Seq(macros, abide, sbt) ++ rules
 

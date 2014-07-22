@@ -20,10 +20,12 @@ object AbideSbtPlugin extends AutoPlugin {
     case Some((2, 10)) => "2.11.1"
   }
 
-  private def abideBinaryVersion(version : String) : String = CrossVersion.partialVersion(version) match {
-    case Some((2, scalaMajor)) if scalaMajor >= 11 => "abide_2." + scalaMajor
-    case Some((2, 10)) => "abide_2.11"
+  private def abideScalaBinaryVersion(version : String) : String = CrossVersion.partialVersion(version) match {
+    case Some((2, scalaMajor)) if scalaMajor >= 11 => s"2.$scalaMajor"
+    case Some((2, 10)) => "2.11"
   }
+
+  private def abideBinaryVersion(version : String) : String = s"abide_${abideScalaBinaryVersion(version)}"
 
   private lazy val abideSettings : Seq[sbt.Def.Setting[_]] = Seq(
     ivyConfigurations += AbideConfig,
@@ -83,7 +85,6 @@ object AbideSbtPlugin extends AutoPlugin {
         val objectSymbol = mirror.staticModule("scala.tools.abide.Abide")
         val abideObj = mirror.reflectModule(objectSymbol).instance.asInstanceOf[{ def main(args : Array[String]) : Unit }]
         abideObj.main(options.toArray)
-        streams.value.log.info("Done verifying.")
       } else {
         streams.value.log.info("No scala sources : skipping project.")
       }

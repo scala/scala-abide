@@ -134,16 +134,11 @@ class AbidePlugin(val global: Global) extends Plugin {
     def newPhase(prev : Phase) = new StdPhase(prev) {
       override def name = AbidePlugin.this.name
 
-      private var time : Long = 0
-
       def apply(unit : CompilationUnit) {
-        val millis = System.currentTimeMillis
         val warnings = analyzers.flatMap {
           gen => gen(_ => true)(unit.body)
         }
 
-        time += System.currentTimeMillis - millis
-        println("time="+time)
         presenter(unit, warnings)
       }
     }

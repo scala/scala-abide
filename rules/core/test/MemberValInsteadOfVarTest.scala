@@ -1,7 +1,7 @@
-package scala.tools.abide.test.rules.samples
+package scala.tools.abide.core.test
 
 import scala.tools.abide.test.traversal._
-import com.typesafe.abide.sample._
+import com.typesafe.abide.core._
 
 class MemberValInsteadOfVarTest extends TraversalTest {
 
