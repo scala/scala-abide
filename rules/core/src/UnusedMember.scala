@@ -18,9 +18,16 @@ class UnusedMember(val context : Context) extends ExistentialRule {
     val owner = sym.owner
     val isValueParameter = owner.isMethod && sym.isValueParameter
 
+    val isMainArgs = isValueParameter && owner.name == TermName("main") && (owner.asMethod.paramLists match {
+      case List(List(param)) => param.typeSignature == typeOf[Array[String]]
+      case _ => false
+    })
+
     val ignore = ((isValueParameter && owner.isDeferred) // abstract method, params are never used
+      || isMainArgs // args : Array[String] don't need to be used since they're a language requirement for the main
       || owner.isConstructor // right after typer constructors are empty, so their params are not used
       || sym.isSynthetic
+      || sym.isConstant // must ignore constant types since these are folded during type checking
       || sym.name.containsChar('$') // synthetic names that are not marked as SYNTHETIC: `(_, _) => ???`
       || isValueParameter &&
         (owner.hasFlag(Flag.OVERRIDE) || owner.overrides.nonEmpty)) // overriding a method needs to keep all (unused) parameters
@@ -35,8 +42,11 @@ class UnusedMember(val context : Context) extends ExistentialRule {
   }
 
   val step = optimize {
-    case tree @ q"$mods val $name: $tpt = $rhs" if shouldConsider(tree.symbol) =>
-      nok(tree.symbol, Warning(tree))
+    case vd : ValDef if shouldConsider(vd.symbol) =>
+      nok(vd.symbol, Warning(vd))
+
+    case dd : DefDef if shouldConsider(dd.symbol) =>
+      nok(dd.symbol, Warning(dd))
 
     case tree @ q"$pre.$name" =>
       ok(tree.symbol)
