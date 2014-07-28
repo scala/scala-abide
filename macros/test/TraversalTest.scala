@@ -74,7 +74,7 @@ class TraversalTest extends FlatSpec with Matchers with TreeProvider {
 
     val step = optimize {
       case dd : DefDef =>
-        dd.vparamss.flatten.foreach(add(_))
+        for (vparams <- dd.vparamss; vparam <- vparams) add(vparam)
         enter(dd)
       case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>
         add(varDef)
