@@ -9,7 +9,7 @@ object AbideBuild extends Build {
   )
 
   lazy val sharedSettings = abideSettings ++ Seq(
-    scalaVersion                  := "2.11.1",
+    scalaVersion                  := "2.11.2",
     scalacOptions                ++= Seq("-deprecation", "-feature"),
     testOptions       in Test     += Tests.Argument("-oF"),
     scalaSource       in Compile <<= (baseDirectory in Compile)(_ / "src"),
