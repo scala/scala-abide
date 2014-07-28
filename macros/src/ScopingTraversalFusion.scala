@@ -33,8 +33,7 @@ trait ScopingTraversalFusion extends TraversalFusion {
 
     def enter(tree : Tree) {
       getTraversals(tree).foreach { traversal =>
-        if (traversal.step.isDefinedAt(tree)) {
-          traversal.step.apply(tree)
+        if (traversal.apply(tree)) {
           traversal match {
             case scoper : ScopingTraversal => scoper.consumeLeaver.foreach {
               leaver => leavers(tree) = (traversal -> leaver) :: leavers(tree)

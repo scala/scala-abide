@@ -1,7 +1,6 @@
 package scala.tools.abide
 
-import scala.reflect.internal._
-import scala.tools.abide.presentation._
+import scala.tools.nsc._
 
 /**
  * Supertrait for analyzer generator objects.
@@ -23,7 +22,7 @@ trait AnalyzerGenerator {
    * Buils a new [[Analyzer]] instance based on a compiler (scala.reflect.internal.SymbolTable), and
    * a list of rules. The [[Analyzer thus generated will then apply these rules to provided trees.
    */
-  def getAnalyzer(universe : SymbolTable, rules : List[Rule]) : Analyzer
+  def getAnalyzer(global : Global, rules : List[Rule]) : Analyzer
 
   /**
    * Subsumption mechanism that enables optimized or generalized analyzers to replace simpler ones.
@@ -43,8 +42,8 @@ trait AnalyzerGenerator {
  * @see [[AnalyzerGenerator]]
  */
 trait Analyzer {
-  protected val universe : SymbolTable
-  import universe._
+  protected val global : Global
+  import global._
 
   /** Applies the rules contained in this [[Analyzer]] to the provided tree and return a list of new warnings. */
   def apply(tree : Tree) : List[Warning]

@@ -3,11 +3,10 @@ package scala.tools.abide.test.traversal
 import scala.tools.abide._
 import scala.tools.abide.test._
 import scala.reflect.internal.traversal._
-import org.scalatest.FunSuite
 
 class TraversalTest extends AbideTest {
 
-  val context = new Context(global).asInstanceOf[Context { val global : TraversalTest.this.global.type }]
+  val context = new Context(global)
 
   object pathTraverser1 extends {
     val universe : TraversalTest.this.global.type = TraversalTest.this.global
@@ -45,7 +44,7 @@ class TraversalTest extends AbideTest {
     val tree = fromFile("traversal/AddressBook.scala")
     global.ask { () =>
       pathTraverser1.traverse(tree)
-      pathTraverser1.state should be (pathTraversal1(tree))
+      pathTraverser1.result should be (pathTraversal1(tree))
     }
   }
 
@@ -53,7 +52,7 @@ class TraversalTest extends AbideTest {
     val tree = fromFile("traversal/SimpleInterpreter.scala")
     global.ask { () =>
       pathTraverser1.traverse(tree)
-      pathTraverser1.state should be (pathTraversal1(tree))
+      pathTraverser1.result should be (pathTraversal1(tree))
     }
   }
 
@@ -101,7 +100,7 @@ class TraversalTest extends AbideTest {
 
   def niceTest(tree : global.Tree) {
     pathTraverser2.traverse(tree)
-    val fast = pathTraverser2.state._2
+    val fast = pathTraverser2.result._2
     val naive = pathTraversal2(tree)
 
     def simplify(set: Set[(Option[global.Tree], global.Tree)]) : Set[String] = {

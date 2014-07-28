@@ -1,6 +1,8 @@
 package scala.tools.abide.traversal
 
 import scala.tools.abide._
+
+import scala.tools.nsc._
 import scala.reflect.internal._
 import scala.reflect.internal.traversal._
 
@@ -15,13 +17,13 @@ import scala.reflect.internal.traversal._
  * @see [[FusingTraversalAnalyzer]]
  */
 object FusingTraversalAnalyzerGenerator extends AnalyzerGenerator {
-  def getAnalyzer(universe : SymbolTable, rules : List[Rule]) : FusingTraversalAnalyzer = {
+  def getAnalyzer(global : Global, rules : List[Rule]) : FusingTraversalAnalyzer = {
     val traversalRules = rules.map(_ match {
       case t : TraversalRule => t
       case rule => scala.sys.error("Unexpected rule type for TraversalAnalyzer : " + rule.getClass)
     })
 
-    new FusingTraversalAnalyzer(universe, traversalRules)
+    new FusingTraversalAnalyzer(global, traversalRules)
   }
 
   val subsumes : Set[AnalyzerGenerator] = Set(NaiveTraversalAnalyzerGenerator)
@@ -34,21 +36,30 @@ object FusingTraversalAnalyzerGenerator extends AnalyzerGenerator {
  * specified in the TraversalRules are fused into a single-pass traversal that optimizes speed by relying
  * on a scala.reflect.internal.traversal.TraversalFusion (type based traversal performance enhancer).
  */
-class FusingTraversalAnalyzer(val universe : SymbolTable, rules : List[TraversalRule]) extends Analyzer {
-  import universe._
+class FusingTraversalAnalyzer(val global : Global, rules : List[TraversalRule]) extends Analyzer {
+  import global._
 
-  private val fused : Option[TraversalFusion { val universe : FusingTraversalAnalyzer.this.universe.type }] =
-    if (rules.isEmpty) None else Some(Fuse(universe)(rules.map { rule =>
-      if (rule.context.universe != universe)
+  private val fused : Option[TraversalFusion { val universe : FusingTraversalAnalyzer.this.global.type }] =
+    if (rules.isEmpty) None else Some(Fuse(global)(rules.map { rule =>
+      if (rule.context.universe != global)
         scala.sys.error("Missmatch between analyzer and rule universe")
 
-      rule.asInstanceOf[Traversal { val universe : FusingTraversalAnalyzer.this.universe.type }]
+      rule.asInstanceOf[Traversal { val universe : FusingTraversalAnalyzer.this.global.type }]
     } : _*))
 
   def apply(tree : Tree) : List[Warning] = fused match {
     case Some(traverser) =>
       traverser.traverse(tree)
-      rules.flatMap(_.state.warnings).toList
+      rules.flatMap { rule =>
+        try {
+          rule.result.warnings
+        } catch {
+          case t : rule.TraversalError =>
+           global.warning(t.pos, t.message)
+           global.debugStack(t.cause)
+           Nil
+        }
+      }.toList
     case None => Nil
   }
 }

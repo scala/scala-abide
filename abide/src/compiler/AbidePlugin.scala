@@ -100,7 +100,7 @@ class AbidePlugin(val global: Global) extends Plugin {
     constructorMirror(context).asInstanceOf[Rule { val context : Context { val universe : AbidePlugin.this.global.type } }]
   }
 
-  private lazy val analyzers : List[(Rule => Boolean) => Analyzer { val universe : AbidePlugin.this.global.type }] = {
+  private lazy val analyzers : List[(Rule => Boolean) => Analyzer { val global : AbidePlugin.this.global.type }] = {
     def generalize(g1 : AnalyzerGenerator, g2 : AnalyzerGenerator) : AnalyzerGenerator = {
       def fix[A](a : A)(f : A => A) : A = { val na = f(a); if (na == a) na else fix(na)(f) }
       val g2Subsumes : Set[AnalyzerGenerator] = fix(g2.subsumes)(set => set ++ set.flatMap(_.subsumes))
@@ -118,7 +118,7 @@ class AbidePlugin(val global: Global) extends Plugin {
       val rules = rulePairs.map(_._1)
       (filter : Rule => Boolean) => {
         val analyzer = generator.getAnalyzer(global, rules.filter(filter))
-        analyzer.asInstanceOf[Analyzer { val universe : AbidePlugin.this.global.type }]
+        analyzer.asInstanceOf[Analyzer { val global : AbidePlugin.this.global.type }]
       }
     }
   }

@@ -13,12 +13,7 @@ class MutabilityTest extends AbideTest {
   import global._
 
   def mutableClass(tree : Tree, str : String) : Boolean = global.ask { () =>
-    def rec(tree : Tree) : Option[Type] = tree match {
-      case cd @ ClassDef(_, name, tparams, impl) if name.toString == str => Some(cd.symbol.toType)
-      case md @ ModuleDef(_, name, impl) if name.toString == str => Some(md.symbol.toType)
-      case _ => tree.children.flatMap(rec(_)).headOption
-    }
-    val tpe = rec(tree).get
+    val tpe = classByName(tree, str).toType
     mutable.publicMutable(tpe).isMutable
   }
 

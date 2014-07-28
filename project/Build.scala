@@ -9,14 +9,13 @@ object AbideBuild extends Build {
   )
 
   lazy val sharedSettings = abideSettings ++ Seq(
-    scalaVersion                    := "2.11.1",
-    scalacOptions                  ++= Seq("-deprecation", "-feature"),
-    scalaSource in Test            <<= (baseDirectory in Test)(base => base / "test"),
-    scalaSource in Compile         <<= (baseDirectory in Compile)(base => base / "src"),
-    resourceDirectory in Compile   <<= (baseDirectory in Compile)(base => base / "resources"),
-    libraryDependencies            <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _ % "provided"),
-    libraryDependencies            <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _ % "provided"),
-    publishArtifact in Test         := false
+    scalaVersion                  := "2.11.1",
+    scalacOptions                ++= Seq("-deprecation", "-feature"),
+    scalaSource       in Compile <<= (baseDirectory in Compile)(_ / "src"),
+    resourceDirectory in Compile <<= (baseDirectory in Compile)(_ / "resources"),
+    libraryDependencies          <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _ % "provided"),
+    libraryDependencies          <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _ % "provided"),
+    publishArtifact in Test       := false
   )
 
   lazy val macros = Project("abide-macros", file("macros")).settings(sharedSettings : _*)
@@ -31,30 +30,24 @@ object AbideBuild extends Build {
   lazy val sbt = Project("sbt-abide", file("sbt-plugin"))
     .settings(abideSettings : _*)
     .settings(
-      sbtPlugin               := true,
-      scalaVersion            := "2.10.4",
-      scalacOptions          ++= Seq("-deprecation", "-feature"),
-      scalaSource in Compile <<= (baseDirectory in Compile)(base => base / "src")
+      sbtPlugin    := true,
+      scalaVersion := "2.10.4"
     )
-
-  lazy val samples = Project("abide-samples", file("sample-rules"))
-    .settings(sharedSettings : _*)
-    .dependsOn(abide)
 
   lazy val tests = Project("tests", file("tests"))
     .settings(sharedSettings : _*)
     .settings(
-      scalaSource in Test          <<= (baseDirectory in Test)(base => base / "test"),
-      resourceDirectory in Test    <<= (baseDirectory in Test)(base => base / "resources"),
-      libraryDependencies           += "org.scalatest" %% "scalatest" % "2.1.7" % "test",
-      testOptions in Test           += Tests.Argument("-oF"),
-      packagedArtifacts             := Map.empty
-    ).dependsOn(macros, abide, samples)
+      scalaSource in Test       <<= (baseDirectory in Test)(_ / "test"),
+      resourceDirectory in Test <<= (baseDirectory in Test)(_ / "resources"),
+      libraryDependencies        += "org.scalatest" %% "scalatest" % "2.1.7" % "test",
+      testOptions in Test        += Tests.Argument("-oF"),
+      packagedArtifacts          := Map.empty
+    ).dependsOn(macros, abide)
 
   lazy val root  = Project("root", file("."))
     .settings(
-      test in Test                  := (test in tests in Test).value,
-      packagedArtifacts             := Map.empty
-    ).aggregate(macros, abide, samples, tests, sbt)
+      test in Test      := (test in tests in Test).value,
+      packagedArtifacts := Map.empty
+    ).aggregate(macros, abide, tests, sbt)
 
 }

@@ -4,14 +4,14 @@ import scala.reflect.macros._
 import scala.language.experimental.macros
 
 /**
- * TraversalMacros
+ * OptimizingMacros
  * 
  * Provides utility methods for extracting the case statement structure of a partial
  * function and accessing the types of the trees we're matching on. If all types are
  * known, they are returned and can be used to speed up traversal by skipping all
  * trees that don't match the types we're interested in.
  */
-object TraversalMacros {
+object OptimizingMacros {
 
   /** Actual extraction method */
   def extractClasses(c : blackbox.Context)
@@ -34,17 +34,23 @@ object TraversalMacros {
       }
     }
 
-    def treeToClass(t: Tree) : Option[Tree] = t match {
-      case Selection(universe, "internal", "reificationSupport", "SyntacticMatch"     ) => Some(q"classOf[$universe.Match]" )
-      case Selection(universe, "internal", "reificationSupport", "SyntacticVarDef"    ) => Some(q"classOf[$universe.ValDef]")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticValDef"    ) => Some(q"classOf[$universe.ValDef]")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticDefDef"    ) => Some(q"classOf[$universe.DefDef]")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticAssign"    ) => Some(q"classOf[$universe.Assign]")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticApplied"   ) => Some(q"classOf[$universe.Apply]" )
-      case Selection(universe, "internal", "reificationSupport", "SyntacticSelectTerm") => Some(q"classOf[$universe.Select]")
+    def treeToClass(t: Tree) : Set[Tree] = t match {
+      case Selection(universe, "internal", "reificationSupport", "SyntacticMatch"     ) => Set(q"classOf[$universe.Match]" )
+      case Selection(universe, "internal", "reificationSupport", "SyntacticVarDef"    ) => Set(q"classOf[$universe.ValDef]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticValDef"    ) => Set(q"classOf[$universe.ValDef]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticDefDef"    ) => Set(q"classOf[$universe.DefDef]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticAssign"    ) => Set(q"classOf[$universe.Assign]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticSelectTerm") => Set(q"classOf[$universe.Select]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticApplied"   ) =>
+        Set(q"classOf[$universe.Apply]", q"classOf[$universe.ApplyToImplicitArgs]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticForYield"  ) =>
+        Set(q"classOf[$universe.Apply]", q"classOf[$universe.ApplyToImplicitArgs]")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticFor"       ) =>
+        Set(q"classOf[$universe.Apply]", q"classOf[$universe.ApplyToImplicitArgs]")
       case _ =>
-        println("Unmanaged quasiquote: " + t)
-        None
+        c.warning(t.pos, "Unmanaged quasiquote:\n  " + t + "\n" +
+          "You can file this warning as a bug report at https://github.com/scala/scala-abide")
+        Set.empty
     }
 
     object Reference {
@@ -62,16 +68,18 @@ object TraversalMacros {
       }
     }
 
-    def typeToClass(t: Type) : Option[Tree] = t match {
-      case Reference(tpe, "Select") => Some(q"scala.reflect.classTag[$t].runtimeClass")
-      case Reference(tpe, "Ident" ) => Some(q"scala.reflect.classTag[$t].runtimeClass")
-      case Reference(tpe, "DefDef") => Some(q"scala.reflect.classTag[$t].runtimeClass")
+    def typeToClass(tree : Tree, t : Type) : Set[Tree] = t match {
+      case Reference(tpe, "Select") => Set(q"scala.reflect.classTag[$t].runtimeClass")
+      case Reference(tpe, "Ident" ) => Set(q"scala.reflect.classTag[$t].runtimeClass")
+      case Reference(tpe, "DefDef") => Set(q"scala.reflect.classTag[$t].runtimeClass")
+      case Reference(tpe, "ValDef") => Set(q"scala.reflect.classTag[$t].runtimeClass")
       case _ =>
-        println("Unmanaged type: " + t)
-        None
+        c.warning(tree.pos, "Unmanaged type:\n  " + t + "\n" +
+          "You can file this warning as a bug report at https://github.com/scala/scala-abide")
+        Set.empty
     }
 
-    def extractorToClass(t: Tree) : Option[Tree] = {
+    def extractorToClass(t: Tree) : Set[Tree] = {
       val extractor = t match {
         case cq"$bind @ $ex if $guard => $res" => Some(ex)
         case cq"$ex if $guard => $res" => Some(ex)
@@ -80,33 +88,33 @@ object TraversalMacros {
 
       extractor match {
         case Some(UnApply(q"$obj.unapply($arg)", _)) => obj match {
-          case q"$mods class $nm1 { ..$defs }; new $nm2()" => defs.map(_ match {
+          case q"$mods class $nm1 { ..$defs }; new $nm2()" => defs.flatMap {
               case q"def unapply(..$args) : $ret = $scrut match { case ..$cases }" =>
-                cases.map(extractorToClass(_)).find(_.isDefined).flatten
-              case _ => None
-            }).find(_.isDefined).flatten
+                cases.flatMap(extractorToClass(_))
+              case _ => Set.empty
+            }.toSet
 
           case tree =>
             treeToClass(tree)
         }
 
         case Some(Apply(caller, _)) if caller.tpe != null =>
-          typeToClass(caller.tpe.resultType)
+          typeToClass(caller, caller.tpe.resultType)
 
         case Some(Ident(name)) if name == termNames.WILDCARD =>
-          None
+          Set.empty
 
         case Some(Typed(_, tpt)) if tpt.tpe != null =>
-          typeToClass(tpt.tpe)
+          typeToClass(tpt, tpt.tpe)
 
         case _ =>
           println("extractor=" + extractor + " : " + extractor.map(_.getClass))
-          None
+          Set.empty
       }
     }
 
     val allClasses = trees.map(extractorToClass(_))
-    if (allClasses.forall(_.isDefined)) Some(allClasses.map(_.get)) else None
+    if (allClasses.forall(_.nonEmpty)) Some(allClasses.flatten) else None
   }
 
   /** Extract the classes from a traditional partial function from trees to
@@ -152,6 +160,6 @@ trait OptimizingTraversal extends Traversal {
     def apply(tree : Tree) : Unit = pf.apply(tree)
   }
 
-  def optimize(pf : PartialFunction[Tree, Unit]) : PartialFunction[Tree, Unit] = macro TraversalMacros.optimize_impl
+  def optimize(pf : PartialFunction[Tree, Unit]) : PartialFunction[Tree, Unit] = macro OptimizingMacros.optimize_impl
 }
 

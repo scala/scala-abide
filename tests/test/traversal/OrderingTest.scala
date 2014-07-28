@@ -36,7 +36,7 @@ class OrderingTest extends AbideTest {
 
     global.ask { () =>
       stackingTraverser.traverse(tree)
-      stackingTraverser.state.isEmpty should be (true)
+      stackingTraverser.result.isEmpty should be (true)
     }
   }
 
@@ -44,7 +44,7 @@ class OrderingTest extends AbideTest {
     val tree = fromFile("traversal/AddressBook.scala")
     global.ask { () =>
       stackingTraverser.traverse(tree)
-      stackingTraverser.state.isEmpty should be (true)
+      stackingTraverser.result.isEmpty should be (true)
     }
   }
 
@@ -52,7 +52,7 @@ class OrderingTest extends AbideTest {
     val tree = fromFile("traversal/SimpleInterpreter.scala")
     global.ask { () =>
       stackingTraverser.traverse(tree)
-      stackingTraverser.state.isEmpty should be (true)
+      stackingTraverser.result.isEmpty should be (true)
     }
   }
 }

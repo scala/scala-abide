@@ -1,6 +1,6 @@
 package scala.tools.abide.test.traversal
 
-import scala.tools.abide.test._
+import scala.tools.abide.util._
 import scala.reflect.internal.traversal._
 import org.scalatest.FunSuite
 
@@ -47,7 +47,7 @@ class SpeedAnalysis extends FunSuite with TreeProvider {
   def traverseFast(tree : Tree) : List[Symbol] = {
     fastTraverser.traverse(tree)
     fastTraverser.traversals.toList.flatMap {
-      x => x.state.asInstanceOf[Map[Symbol, Boolean]].collect { case (a, false) => a }
+      x => x.result.asInstanceOf[Map[Symbol, Boolean]].collect { case (a, false) => a }
     }
   }
 

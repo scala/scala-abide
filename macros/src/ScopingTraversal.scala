@@ -57,4 +57,9 @@ trait ScopingTraversal extends Traversal {
     leaver = None
     l
   }
+
+  override def init {
+    super.init
+    leaver = None
+  }
 }

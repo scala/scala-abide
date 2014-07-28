@@ -76,8 +76,8 @@ trait TraversalFusion {
   /** Applies the fused traversals to a tree (in a foreach manner) */
   def traverse(tree : Tree) {
     traversals.foreach(_.init)
-    foreach(tree)(tree => getTraversals(tree).foreach { traversal =>
-      if (traversal.step.isDefinedAt(tree)) traversal.step.apply(tree)
+    foreach(tree)(tree => getTraversals(tree).foreach {
+      traversal => traversal.apply(tree)
     })
   }
 
