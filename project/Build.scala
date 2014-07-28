@@ -55,8 +55,9 @@ object AbideBuild extends Build {
 
   lazy val root = (Project("root", file("."))
     .settings(
+      //test in Test <<= allProjects.map(p => test in Test in p).dependOn,
       //test in Test      := (test in tests in Test).value,
-      parallelExecution in Global := false,
+      //parallelExecution in Global := false,
       packagedArtifacts := Map.empty
     ) /: allProjects) (_ aggregate _)
 

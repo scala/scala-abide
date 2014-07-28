@@ -1,0 +1,4 @@
+<plugin>
+  <rule class="com.typesafe.abide.akka.SenderInFuture" />
+  <rule class="com.typesafe.abide.akka.ClosingOverContext" />
+</plugin>

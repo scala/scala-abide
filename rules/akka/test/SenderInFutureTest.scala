@@ -9,8 +9,7 @@ class SenderInFutureTest extends TraversalTest {
 
   "Stable sender access" should "be valid out of futures" in {
     val tree = fromString("""
-      import scala.concurrent._
-      class Titi extends Actor {
+      class Titi extends akka.actor.Actor {
         def receive = {
           case _ => 
             val s = sender()
@@ -25,7 +24,8 @@ class SenderInFutureTest extends TraversalTest {
   it should "be valid inside of futures" in {
     val tree = fromString("""
       import scala.concurrent._
-      class Titi extends Actor {
+      import scala.concurrent.ExecutionContext.Implicits.global
+      class Titi extends akka.actor.Actor {
         def receive = {
           case _ =>
             val s = sender()
@@ -37,6 +37,36 @@ class SenderInFutureTest extends TraversalTest {
     """)
 
     global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+  }
+
+  "Unstable sender access" should "be valid out of futures" in {
+    val tree = fromString("""
+      class Titi extends akka.actor.Actor {
+        def receive = {
+          case _ => 
+            sender() ! "Hello"
+        }
+      }
+    """)
+
+    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+  }
+
+  it should "be invalid inside of futures" in {
+    val tree = fromString("""
+      import scala.concurrent._
+      import scala.concurrent.ExecutionContext.Implicits.global
+      class Titi extends akka.actor.Actor {
+        def receive = {
+          case _ => 
+            future {
+              sender() ! "Hello"
+            }
+        }
+      }
+    """)
+
+    global.ask { () => apply(rule)(tree).isEmpty should be (false) }
   }
 
 }

@@ -3,7 +3,7 @@ package com.typesafe.abide.akka
 import scala.tools.abide._
 import scala.tools.abide.traversal._
 
-class SenderInFuture(val context : Context) extends ScopingRule {
+class SenderInFuture(val context : Context) extends PathRule {
   import context.universe._
 
   val name = "sender-in-future"
@@ -13,23 +13,30 @@ class SenderInFuture(val context : Context) extends ScopingRule {
     val message = s"sender() is not stable and should not be accessed in non-thread-safe environments"
   }
 
-  sealed abstract class Owner
-  case object Actor   extends Owner
-  case object Receive extends Owner
-  case object Future  extends Owner
+  sealed abstract class Element
+  case class Receive(sym : Symbol) extends Element
+  case object Future extends Element
 
   lazy val actorSym = rootMirror.getClassByName(TypeName("akka.actor.Actor"))
-  lazy val senderSym = actorSym.members.find(_.name == TermName("sender")).get
-  lazy val futureSym = rootMirror.getModuleByName(TermName("scala.concurrent")).members.find(_.name == TermName("future")).get
+
+  lazy val receiveSym = actorSym.toType.members.find(_.name == TermName("receive")).get
+  lazy val senderSym = actorSym.toType.members.find(_.name == TermName("sender")).get
+
+  lazy val futureSym = {
+    val concurrentSym = rootMirror.getModuleByName(TermName("scala.concurrent"))
+    concurrentSym.moduleClass.toType.members.find(_.name == TermName("future")).get
+  }
 
   val step = optimize {
-    case classDef : ClassDef if classDef.symbol.asClass.baseClasses.exists(_ == actorSym) =>
-      enter(Actor)
-    case q"def receive : $tpt = $rhs" if state in Actor =>
-      enter(Receive)
-    case q"$caller(..$args)" if caller.symbol == futureSym && state in Receive =>
-      enter(Future)
-    case tree @ q"$caller(..$args)" if caller.symbol == senderSym && state in Future =>
-      nok(Warning(tree))
+    case dd @ q"def receive : $tpt = $rhs" if dd.symbol.overrides.exists(_ == receiveSym) =>
+      enter(Receive(dd.symbol.owner))
+    case q"$caller(..$args)" if caller.symbol == futureSym => state.last match {
+      case Some(Receive(sym)) => enter(Future)
+      case _ =>
+    }
+    case tree @ Apply(sender @ Select(actor, TermName("sender")), _) if sender.symbol == senderSym =>
+      if (state matches (Receive(actor.symbol), Future)) {
+        nok(Warning(tree))
+      }
   }
 }
