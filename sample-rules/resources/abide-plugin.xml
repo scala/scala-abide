@@ -7,4 +7,5 @@
   <rule class="com.typesafe.abide.sample.LocalValInsteadOfVar" />
   <rule class="com.typesafe.abide.sample.MemberValInsteadOfVar" />
   <rule class="com.typesafe.abide.sample.UnusedMember" />
+  <rule class="com.typesafe.abide.sample.MonadicFors" />
 </plugin>
