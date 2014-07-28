@@ -6,16 +6,31 @@ optimization away from the rule writter.
 
 ## Using the tool
 
-**Abide** is only available for sbt for now, but will be ported to a Scala-IDE plugin and possibly to maven/gradle/etc as
-well. To add **abide** verification to an sbt project, two different options are available :
+**Abide** is only available for sbt (and command line) for now, but will be ported to a Scala-IDE plugin and possibly to maven/gradle/etc as well. To add **abide** verification to an sbt project, three different options are available :
+
+### Sbt Plugin
+
+Activate the sbt-abide plugin in both scala 2.10 and 2.11 projects by extending your `project/plugin.sbt` file with
+```scala
+addSbtPlugin("com.typesafe" % "abide" % "0.1-SNAPSHOT")
+```
+
+Then choose the rule libraries by adding the required jars to your dependencies in your project definitions (eg. `build.sbt`)
+```scala
+libraryDependencies += "com.typesafe" % "abide-samples" % "0.1-SNAPSHOT" % "abide"
+```
+Note that one can also use sbt projects as rule libraries by using `dependsOn(rules % "abide")` in the project definition.
+
+This mode can run on scala 2.10 projects by using the compiler `-Xsource:2.10` flag (automatically managed by
+the plugin), however one _must_ force the use of the **abide** libraries version built against scala 2.11!
 
 ### Compiler Plugin
 
-**Abide** can be activated **in scala 2.11** projects by extending the sbt build file with
+**Abide** can be activated as a compiler plugin in **scala 2.11** projects by extending the sbt build file with
 ```scala
 libraryDependencies += compilerPlugin("com.typesafe" %% "abide" % "0.1-SNAPSHOT")
 scalacOptions ++= Seq(
-  "-P:abide:abidecp:<some.rules.path>+",
+  "-P:abide:abidecp:<some.rules.classpath>",
   "-P:abide:ruleClass:<some.rule.Class>",
   "-P:abide:analyzerClass:<some.analyzer.generator.Module>",
   ...)
@@ -30,29 +45,58 @@ appear in `analyzerClass` arguments (also multiple instances).
 While slightly more complexe than the following alternative, this mode provides integration capabilities for non-sbt
 build tools like eclipse or maven.
 
-### Sbt Plugin
+### Command line
 
-Activate the sbt-abide plugin in both scala 2.10 and 2.11 projects by adding
-```scala
-libraryDependencies += "com.typesafe" % "abide" % "0.1-SNAPSHOT"
+The **abide** compiler plugin can also be used directly on the command line by adding the plugin to your `scalac` command and using the options described in the [compiler plugin](#compiler-plugin) as cli arguments:
 ```
-to your `project/plugins.sbt` file and then choose the rule libraries by adding the required jars to your library 
-dependencies with 
-```scala
-libraryDependencies += "com.typesafe" % "abide-samples" % "0.1-SNAPSHOT" % "abide"
+scalac -Xplugin:<path/to/abide.jar>                            \
+       -P:abide:abidecp:<some.rules.classpath>                 \
+       -P:abide:ruleClass:<some.rule.Class>                    \
+       -P:abide:analyzerClass:<some.analyzer.generator.Module> \
+       ...
 ```
 
-Note that this mode can run on scala 2.10 projects by using the compiler `-Xsource:2.10` flag (automatically managed by
-the plugin), however one _must_ force the use of the **abide** libraries version built against scala 2.11!
+Note that this feature, as in the compiler plugin case, can only be used on **scala 2.11** projects.
+
+## Existing plugins
+
+The **abide** framework comes with a few pre-made rule packages that can be selectively enabled as discussed in the [previous section](#using-the-tool). The list of available packages along with the associated ivy dependency are:
+
+1. [rules/core](/wiki/core-rules.md) provided by `"com.typesafe" % "abide-core" % "0.1-SNAPSHOT"`
+
+2. [rules/extra](/wiki/extra-rules.md) provided by `"com.typesafe" % "abide-extra" % "0.1-SNAPSHOT"`
+
+3. [rules/akka](/wiki/akka-rules.md) provided by `"com.typesafe" % "abide-akka" % "0.1-SNAPSHOT"`
 
 ## Extending Abide
 
-As of now, only the backend for unit-local, flow-agnostic rules has been written, but cross-unit and flow-sensitive
-backends should be added in the future (if deemed useful). However, many simple(r) rules do not actually need flow
-information and warnings can be collected by a single pass through a compilation unit's body. Such rules are called
-_traversal rules_ in the **abide** lingo. See
-[writing traversal rules](https://github.com/samarion/scala-abide/wiki/Writing-Traversal-Rules) and
-[abide plugins](https://github.com/samarion/scala-abide/wiki/Abide-Plugins) for more details.
+Setting aside bugfixes and basic feature modification, **abide** components are generally loosely coupled and self-contained to enable simple extensions to the framework. Such extensions will typically fall into one of three different categories and will vary in complexity. From simplest (and most useful extension point) to most involved:
+
+1. [rule extension](/wiki/rules.md)  
+The **abide** framework initially ships with few rules but provides a powerful extension point to accomodate user-defined
+rule verification. These rules can either be defined locally (using the `Project(...).dependsOn(rules % "abide")` construction) or shared over github by submitting new rules as pull requests to this repository.
+
+2. [directive extension](/wiki/extensions.md#adding-new-directives)  
+**Abide** rules all share a minimal amount of context, namely the universe instance which defines the compiler AST cake. This context is passed to rules through the `val context : Context` constructor parameter that each rule must define. Directives will typically be mixed in to the shared context object and cache computation results when these can be shared between rules.
+
+3. [analyzer extension](/wiki/extensions.md#defining-analyzers)  
+When rule application can benefit from some global traversal logic, or partial tree analysis, these computations are
+performed in an `Analyzer` subtype. These analyzers are typically non-trivial and will be integrated into the main **abide** deliverable to then be shared by all rules. However, analyzers can also be provided alongside rules in plugin
+libraries.
+
+The provided extension mechanism uses a plugin architecture based on an xml description that specifies plugin
+capabilities. This description sits at the base of the `resources` directory, in `abide-plugin.xml` and has the 
+following structure:
+```xml
+<plugin>
+  <rule class="some.rule.Class" />
+  <rule class="some.other.rule.Class" />
+  <analyzer class="some.analyzer.generator.Class" />
+</plugin>
+```
+
+Directives don't need to (and shouldn't) be specified in the plugin description as they will be statically referenced
+in the source code (and they can't be dynamically subsumed like analyzers).
 
 ## Further Work
 
