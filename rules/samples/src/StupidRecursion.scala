@@ -17,7 +17,7 @@ class StupidRecursion(val context : Context) extends ScopingRule {
 
   val step = optimize {
     case defDef @ q"def $name : $tpt = $body" => enter(defDef.symbol)
-    case id @ Ident(_) if id.symbol != null && (state in id.symbol) => nok(Warning(id))
-    case s @ Select(_, _) if s.symbol != null && (state in s.symbol) => nok(Warning(s))
+    case id @ Ident(_) if id.symbol != null && (state childOf id.symbol) => nok(Warning(id))
+    case s @ Select(_, _) if s.symbol != null && (state childOf s.symbol) => nok(Warning(s))
   }
 }

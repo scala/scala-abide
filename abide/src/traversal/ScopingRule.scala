@@ -22,7 +22,14 @@ trait ScopingRule extends TraversalRule with ScopingTraversal {
     def nok(warning : Warning) : State = State(scope, warning :: warnings)
     def enter(owner : Owner) : State = State(owner :: scope, warnings)
     def leave : State = State(scope.tail, warnings)
-    def in(owner : Owner) : Boolean = scope.nonEmpty && owner == scope.head
+
+    def childOf(matches : Owner => Boolean) : Boolean = scope.nonEmpty && matches(scope.head)
+    def childOf(owner : Owner) : Boolean = childOf(_ == owner)
+
+    def in(matches : Owner => Boolean) : Boolean = scope.exists(matches(_))
+
+    def parents(matches : Owner => Boolean) : List[Owner] = scope.filter(matches(_))
+    def parent : Option[Owner] = scope.headOption
   }
 
   /** Register owner as current scope (pushes it onto scoping stack) */

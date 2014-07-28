@@ -31,7 +31,10 @@ trait CompilerProvider {
     }
 
     val compiler = new Global(settings, new Reporter {
-      def info0(pos : Position, msg : String, severity : Severity, force : Boolean) : Unit = ()
+      def info0(pos : Position, msg : String, severity : Severity, force : Boolean) : Unit = {
+        //println(msg)
+        ()
+      }
     })
 
     try {

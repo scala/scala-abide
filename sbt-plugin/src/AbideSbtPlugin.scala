@@ -8,7 +8,6 @@ import scala.reflect.runtime.{universe => ru}
 object AbideSbtPlugin extends AutoPlugin {
 
   object autoImport {
-    val analyzer = settingKey[String]("User-defined analyzer class")
     val abide = taskKey[Unit]("Runs abide verification on current project")
   }
 
@@ -88,8 +87,7 @@ object AbideSbtPlugin extends AutoPlugin {
       } else {
         streams.value.log.info("No scala sources : skipping project.")
       }
-    },
-    analyzer in abide := "scala.tools.abide.DefaultAnalyzer"
+    }
   )
 
   override def requires = sbt.plugins.JvmPlugin
