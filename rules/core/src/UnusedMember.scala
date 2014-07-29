@@ -51,6 +51,9 @@ class UnusedMember(val context: Context) extends ExistentialRule {
     case tree @ q"$pre.$name" =>
       ok(tree.symbol)
 
+    case b: Bind =>
+      nok(b.symbol, Warning(b))
+
     case tree @ Ident(_) =>
       val affectedSymbols =
         if (tree.symbol.owner.isConstructor) {

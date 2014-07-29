@@ -17,7 +17,7 @@ class FixedNameOverridesTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "not be valid when renamed" in {
@@ -30,7 +30,7 @@ class FixedNameOverridesTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be(1) }
   }
 
   it should "not be valid when renamed abstracts" in {
@@ -43,7 +43,7 @@ class FixedNameOverridesTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be(1) }
   }
 
   it should "not be valid for each argument" in {
@@ -56,7 +56,7 @@ class FixedNameOverridesTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be (2) }
+    global.ask { () => apply(rule)(tree).size should be(2) }
   }
 
   it should "not be valid for each override" in {
@@ -72,7 +72,7 @@ class FixedNameOverridesTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be (2) }
+    global.ask { () => apply(rule)(tree).size should be(2) }
   }
 
   it should "be valid in case-class definitions" in {
@@ -80,7 +80,7 @@ class FixedNameOverridesTest extends TraversalTest {
       case class Person(asdbfds : Int)
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "be valid in partial function desugaring" in {
@@ -93,7 +93,7 @@ class FixedNameOverridesTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
 }

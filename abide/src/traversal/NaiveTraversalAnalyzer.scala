@@ -5,6 +5,7 @@ import scala.tools.abide._
 import scala.tools.nsc._
 import scala.reflect.internal._
 import scala.reflect.internal.traversal._
+import scala.reflect.internal.util.NoPosition
 
 /**
  * NaiveTraversalAnalyzerGenerator
@@ -15,9 +16,12 @@ import scala.reflect.internal.traversal._
  */
 object NaiveTraversalAnalyzerGenerator extends AnalyzerGenerator {
   def getAnalyzer(global: Global, rules: List[Rule]): NaiveTraversalAnalyzer = {
-    val traversalRules = rules.map(_ match {
-      case t: TraversalRule => t
-      case rule             => scala.sys.error("Unexpected rule type for TraversalAnalyzer : " + rule.getClass)
+    val traversalRules = rules.flatMap(_ match {
+      case t: TraversalRule =>
+        Some(t)
+      case rule =>
+        global.reporter.warning(NoPosition, "Skipping unexpected type for TraversalAnalyzer : " + rule.getClass)
+        None
     })
 
     new NaiveTraversalAnalyzer(global, traversalRules)

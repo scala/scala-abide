@@ -16,7 +16,7 @@ class StupidRecursionTest extends TraversalTest {
 
     global.ask { () =>
       val syms = apply(rule)(tree).map(_.tree.symbol.toString)
-      syms.sorted should be (List("method test"))
+      syms.sorted should be(List("method test"))
     }
   }
 
@@ -32,7 +32,7 @@ class StupidRecursionTest extends TraversalTest {
 
     global.ask { () =>
       val syms = apply(rule)(tree).map(_.tree.symbol.toString)
-      syms.sorted should be (List("method rec"))
+      syms.sorted should be(List("method rec"))
     }
   }
 
@@ -49,6 +49,6 @@ class StupidRecursionTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 }

@@ -20,7 +20,7 @@ class LocalValInsteadOfVarTest extends TraversalTest {
 
     global.ask { () =>
       val syms = apply(rule)(tree).map(_.tree.symbol.toString)
-      syms.sorted should be (List("variable b", "variable c"))
+      syms.sorted should be(List("variable b", "variable c"))
     }
   }
 
@@ -36,7 +36,7 @@ class LocalValInsteadOfVarTest extends TraversalTest {
     """)
 
     global.ask { () =>
-      apply(rule)(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be(true)
     }
   }
 
@@ -52,7 +52,7 @@ class LocalValInsteadOfVarTest extends TraversalTest {
     """)
 
     global.ask { () =>
-      apply(rule)(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be(true)
     }
   }
 
@@ -64,7 +64,7 @@ class LocalValInsteadOfVarTest extends TraversalTest {
     """)
 
     global.ask { () =>
-      apply(rule)(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be(true)
     }
 
     val tree2 = fromString("""
@@ -77,9 +77,8 @@ class LocalValInsteadOfVarTest extends TraversalTest {
     """)
 
     global.ask { () =>
-      apply(rule)(tree2).isEmpty should be (true)
+      apply(rule)(tree2).isEmpty should be(true)
     }
   }
-
 
 }

@@ -4,17 +4,17 @@ import scala.tools.abide.test.traversal._
 import com.typesafe.abide.core._
 
 class UnusedMemberTest extends TraversalTest {
-  
+
   val rule = new UnusedMember(context)
 
-  "Unused private members" should "be discovered when simple" in {
+  "Unused local members" should "be discovered when simple" in {
     val tree = fromString("""
       class Toto {
         private val titi = 2
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be(1) }
   }
 
   it should "be discovered when private[this]" in {
@@ -24,7 +24,7 @@ class UnusedMemberTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be(1) }
   }
 
   it should "be discovered when `def`" in {
@@ -34,7 +34,7 @@ class UnusedMemberTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be(1) }
   }
 
   // can't actually be found in the compiler plugin because these values will be
@@ -46,12 +46,66 @@ class UnusedMemberTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be(1) }
+  }
+
+  it should "be ignored when synthetic" in {
+    val tree = fromString("""
+      class Toto {
+        def test(list : List[Int]) : List[Int] = list.map(_ => 1)
+      }
+    """)
+
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
+  }
+
+  it should "be ignored when used in super-constructor" in {
+    val tree = fromString("""
+      class Foo(val a : Int)
+      class Bar(b : Int) extends Foo(b)
+    """)
+
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
+  }
+
+  it should "be reported when NOT used in super-constructor" in {
+    val tree = fromString("""
+      class Foo(val a : Int)
+      class Bar(b : Int) extends Foo(1)
+    """)
+
+    global.ask { () => apply(rule)(tree).size should be(1) }
+  }
+
+  it should "be ignored when used in case statements" in {
+    val tree = fromString("""
+      class Toto {
+        def test(l : List[Int]) : Int = l match {
+          case x :: _ => x
+          case _ => 0
+        }
+      }
+    """)
+
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
+  }
+
+  it should "be reported when NOT used in rhs of case statement" in {
+    val tree = fromString("""
+      class Toto {
+        def test(l : List[Int]) : Int = l match {
+          case x :: xs => x
+          case a => 0
+        }
+      }
+    """)
+
+    global.ask { () => apply(rule)(tree).size should be(2) }
   }
 
   it should "be found in Properties.scala" in {
     val tree = fromFile("Properties.scala")
-    global.ask { () => apply(rule)(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be(1) }
   }
 
   "Other members" should "be valid when used" in {
@@ -62,7 +116,7 @@ class UnusedMemberTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "be valid when private final is used" in {
@@ -73,7 +127,7 @@ class UnusedMemberTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "be valid when private final is used in objects" in {
@@ -87,7 +141,7 @@ class UnusedMemberTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "be valid when public" in {
@@ -97,7 +151,7 @@ class UnusedMemberTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "be valid when package-private" in {
@@ -108,23 +162,25 @@ class UnusedMemberTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "be valid in MurmurHash.scala" in {
     val tree = fromFile("MurmurHash.scala")
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "be valid in MurmurHash.scala alongside other rules" in {
     val tree = fromFile("MurmurHash.scala")
-    val rules = List(rule,
+    val rules = List(
+      rule,
       new MatchCaseOnSeq(context),
       new PublicMutable(context),
       new RenamedDefaultParameter(context),
       new StupidRecursion(context),
       new LocalValInsteadOfVar(context),
-      new MemberValInsteadOfVar(context))
-    global.ask { () => apply(rules : _*)(tree).isEmpty should be (true) }
+      new MemberValInsteadOfVar(context)
+    )
+    global.ask { () => apply(rules: _*)(tree).isEmpty should be(true) }
   }
 }

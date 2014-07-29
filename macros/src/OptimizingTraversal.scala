@@ -51,7 +51,7 @@ object OptimizingMacros {
       case Selection(universe, "internal", "reificationSupport", "SyntacticFor") =>
         treeClasses(universe, "Apply", "ApplyToImplicitArgs", "ApplyImplicitView")
       case _ =>
-        c.warning(t.pos, "Unmanaged quasiquote:\n  " + t + "\n" +
+        c.warning(t.pos, "Unmanaged quasiquote: " + t + "\n" +
           "You can file this warning as a bug report at https://github.com/scala/scala-abide")
         Set.empty
     }
@@ -77,6 +77,7 @@ object OptimizingMacros {
     }.toSet
 
     def typeToClass(tree: Tree, t: Type): Set[Tree] = t match {
+      case Reference(tpe, "Bind")   => typeClasses(tpe, "Bind")
       case Reference(tpe, "Match")  => typeClasses(tpe, "Match")
       case Reference(tpe, "Ident")  => typeClasses(tpe, "Ident")
       case Reference(tpe, "Select") => typeClasses(tpe, "Select")
@@ -85,7 +86,7 @@ object OptimizingMacros {
       case Reference(tpe, "Assign") => typeClasses(tpe, "Assign")
       case Reference(tpe, "Apply")  => typeClasses(tpe, "Apply", "ApplyToImplicitArgs", "ApplyImplicitView")
       case _ =>
-        c.warning(tree.pos, "Unmanaged type:\n  " + t + "\n" +
+        c.warning(tree.pos, "Unmanaged type: " + t + "\n" +
           "You can file this warning as a bug report at https://github.com/scala/scala-abide")
         Set.empty
     }
@@ -165,7 +166,8 @@ trait OptimizingTraversal extends Traversal {
 
   case class ClassExtraction(
       classes: Option[Set[Class[_]]],
-      pf: PartialFunction[Tree, Unit]) extends PartialFunction[Tree, Unit] {
+      pf: PartialFunction[Tree, Unit]
+  ) extends PartialFunction[Tree, Unit] {
     def isDefinedAt(tree: Tree): Boolean = pf.isDefinedAt(tree)
     def apply(tree: Tree): Unit = pf.apply(tree)
   }

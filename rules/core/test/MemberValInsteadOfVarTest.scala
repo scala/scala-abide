@@ -17,7 +17,7 @@ class MemberValInsteadOfVarTest extends TraversalTest {
 
     global.ask { () =>
       val syms = apply(rule)(tree).map(_.tree.symbol.toString)
-      syms.sorted should be (List("variable a"))
+      syms.sorted should be(List("variable a"))
     }
   }
 
@@ -31,7 +31,7 @@ class MemberValInsteadOfVarTest extends TraversalTest {
     """)
 
     global.ask { () =>
-      apply(rule)(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be(true)
     }
   }
 
@@ -44,7 +44,7 @@ class MemberValInsteadOfVarTest extends TraversalTest {
     """)
 
     global.ask { () =>
-      apply(rule)(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be(true)
     }
   }
 
@@ -57,7 +57,7 @@ class MemberValInsteadOfVarTest extends TraversalTest {
     """)
 
     global.ask { () =>
-      apply(rule)(tree).isEmpty should be (true)
+      apply(rule)(tree).isEmpty should be(true)
     }
   }
 

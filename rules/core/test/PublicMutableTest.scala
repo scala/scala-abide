@@ -15,7 +15,7 @@ class PublicMutableTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "not matter in public defs" in {
@@ -26,7 +26,7 @@ class PublicMutableTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "not matter in private vals" in {
@@ -37,7 +37,7 @@ class PublicMutableTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "not matter in private[this] members" in {
@@ -47,7 +47,7 @@ class PublicMutableTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "not matter for self-member" in {
@@ -57,7 +57,7 @@ class PublicMutableTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   "Mutability" should "be warned about in public vals" in {
@@ -70,7 +70,7 @@ class PublicMutableTest extends TraversalTest {
 
     global.ask { () =>
       val syms = apply(rule)(tree).map(_.tree.symbol.toString)
-      syms.sorted should be (List("value mut", "variable a"))
+      syms.sorted should be(List("value mut", "variable a"))
     }
   }
 
@@ -83,7 +83,7 @@ class PublicMutableTest extends TraversalTest {
 
     global.ask { () =>
       val syms = apply(rule)(tree).map(_.tree.symbol.toString)
-      syms.sorted should be (List("variable a"))
+      syms.sorted should be(List("variable a"))
     }
   }
 
@@ -97,7 +97,7 @@ class PublicMutableTest extends TraversalTest {
 
     global.ask { () =>
       val syms = apply(rule)(tree).map(_.tree.symbol.toString)
-      syms.sorted should be (List("variable toto"))
+      syms.sorted should be(List("variable toto"))
     }
   }
 

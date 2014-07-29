@@ -162,7 +162,7 @@ class AbidePlugin(val global: Global) extends Plugin {
         abideCp = option.substring("abidecp:".length)
       }
       else {
-        scala.sys.error("Option not understood: " + option)
+        global.reporter.error(NoPosition, "Unexpected abide option: " + option)
       }
     }
   }

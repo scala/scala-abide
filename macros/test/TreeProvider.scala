@@ -17,7 +17,7 @@ trait TreeProvider extends CompilerProvider {
     () => "/tmp/abideInput" + r.nextInt + ".scala"
   }
 
-  def fromSource(source: SourceFile) : global.Tree = {
+  def fromSource(source: SourceFile): global.Tree = {
     val response = new global.Response[global.Tree]
 
     global.ask { () =>
@@ -26,18 +26,18 @@ trait TreeProvider extends CompilerProvider {
 
     response.get match {
       case Left(tree) => tree
-      case Right(ex) => throw ex
+      case Right(ex)  => throw ex
     }
   }
 
-  def fromFile(fileName: String) : global.Tree = {
+  def fromFile(fileName: String): global.Tree = {
     val fileURL = getClass.getClassLoader.getResource(fileName)
     val filePath = new java.io.File(fileURL.toURI).getAbsolutePath
     val source = new BatchSourceFile(AbstractFile.getFile(filePath))
     fromSource(source)
   }
 
-  def fromFolder(folderName : String) = {
+  def fromFolder(folderName: String) = {
     import java.io.File
     import scala.collection.JavaConversions._
 
@@ -49,15 +49,15 @@ trait TreeProvider extends CompilerProvider {
     files.map(f => fromSource(global.getSourceFile(f.getAbsolutePath)))
   }
 
-  def fromString(str : String) : global.Tree = {
+  def fromString(str: String): global.Tree = {
     val response = new Response[global.Tree]
     val fileName = randomFileName()
     val file = new BatchSourceFile(fileName, str)
     fromSource(file)
   }
 
-  def classByName(tree : global.Tree, str : String) : global.Symbol = {
-    def rec(tree : global.Tree) : Option[global.Symbol] = tree match {
+  def classByName(tree: global.Tree, str: String): global.Symbol = {
+    def rec(tree: global.Tree): Option[global.Symbol] = tree match {
       case cd @ global.ClassDef(_, name, tparams, impl) if name.toString == str => Some(cd.symbol)
       case md @ global.ModuleDef(_, name, impl) if name.toString == str => Some(md.symbol)
       case _ => tree.children.flatMap(rec(_)).headOption
@@ -66,11 +66,11 @@ trait TreeProvider extends CompilerProvider {
     rec(tree).get
   }
 
-  def memberByName(tree : global.Tree, str : String) : global.Tree = {
-    def rec(tree : global.Tree) : Option[global.Tree] = tree match {
-      case vd @ global.ValDef(_, name, _, _) => Some(vd)
+  def memberByName(tree: global.Tree, str: String): global.Tree = {
+    def rec(tree: global.Tree): Option[global.Tree] = tree match {
+      case vd @ global.ValDef(_, name, _, _)       => Some(vd)
       case dd @ global.DefDef(_, name, _, _, _, _) => Some(dd)
-      case _ => tree.children.flatMap(rec(_)).headOption
+      case _                                       => tree.children.flatMap(rec(_)).headOption
     }
 
     rec(tree).get

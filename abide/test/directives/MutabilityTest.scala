@@ -7,12 +7,12 @@ import scala.tools.nsc._
 class MutabilityTest extends AbideTest {
 
   object mutable extends {
-    val universe : MutabilityTest.this.global.type = MutabilityTest.this.global
+    val universe: MutabilityTest.this.global.type = MutabilityTest.this.global
   } with MutabilityChecker
 
   import global._
 
-  def mutableClass(tree : Tree, str : String) : Boolean = global.ask { () =>
+  def mutableClass(tree: Tree, str: String): Boolean = global.ask { () =>
     val tpe = classByName(tree, str).toType
     mutable.publicMutable(tpe).isMutable
   }
@@ -24,9 +24,9 @@ class MutabilityTest extends AbideTest {
       case object Nil extends List[Nothing]
     """)
 
-    mutableClass(tree, "List") should be (false)
-    mutableClass(tree, "Cons") should be (false)
-    mutableClass(tree, "Nil") should be (false)
+    mutableClass(tree, "List") should be(false)
+    mutableClass(tree, "Cons") should be(false)
+    mutableClass(tree, "Nil") should be(false)
   }
 
   it should "be ensured in Trees" in {
@@ -36,9 +36,9 @@ class MutabilityTest extends AbideTest {
       case class Leaf[T](value: T) extends Tree[T]
     """)
 
-    mutableClass(tree, "Tree") should be (false)
-    mutableClass(tree, "Node") should be (false)
-    mutableClass(tree, "Leaf") should be (false)
+    mutableClass(tree, "Tree") should be(false)
+    mutableClass(tree, "Node") should be(false)
+    mutableClass(tree, "Leaf") should be(false)
   }
 
   it should "be ensured in types with immutable fields" in {
@@ -49,8 +49,8 @@ class MutabilityTest extends AbideTest {
       class ImmutableFields2(list: List[Map[Int,List[_]]])
     """)
 
-    mutableClass(tree, "ImmutableFields") should be (false)
-    mutableClass(tree, "ImmutableFields2") should be (false)
+    mutableClass(tree, "ImmutableFields") should be(false)
+    mutableClass(tree, "ImmutableFields2") should be(false)
   }
 
   it should "be ensured in types with cyclic references" in {
@@ -61,8 +61,8 @@ class MutabilityTest extends AbideTest {
       }
     """)
 
-    mutableClass(tree, "A") should be (false)
-    mutableClass(tree, "B") should be (false)
+    mutableClass(tree, "A") should be(false)
+    mutableClass(tree, "B") should be(false)
   }
 
   "Type mutability" should "be ensured in types with vars" in {
@@ -70,7 +70,7 @@ class MutabilityTest extends AbideTest {
       case class Test(head: Int, var tail: Int)
     """)
 
-    mutableClass(tree, "Test") should be (true)
+    mutableClass(tree, "Test") should be(true)
   }
 
   /* Well, maybe not...

@@ -7,17 +7,17 @@ class OrderingTest extends FlatSpec with Matchers with TreeProvider {
   import global._
 
   object stackingTraverser extends {
-    val universe : OrderingTest.this.global.type = OrderingTest.this.global
+    val universe: OrderingTest.this.global.type = OrderingTest.this.global
   } with ScopingTraversal {
     import universe._
 
     type State = List[Tree]
-    def emptyState : State = Nil
+    def emptyState: State = Nil
 
-    val step : PartialFunction[Tree, Unit] = {
+    val step: PartialFunction[Tree, Unit] = {
       case tree => transform(tree :: _, state => state match {
         case x :: xs if x == tree => xs
-        case _ => state
+        case _                    => state
       })
     }
   }
@@ -36,7 +36,7 @@ class OrderingTest extends FlatSpec with Matchers with TreeProvider {
 
     global.ask { () =>
       stackingTraverser.traverse(tree)
-      stackingTraverser.result.isEmpty should be (true)
+      stackingTraverser.result.isEmpty should be(true)
     }
   }
 
@@ -44,7 +44,7 @@ class OrderingTest extends FlatSpec with Matchers with TreeProvider {
     val tree = fromFile("traversal/AddressBook.scala")
     global.ask { () =>
       stackingTraverser.traverse(tree)
-      stackingTraverser.result.isEmpty should be (true)
+      stackingTraverser.result.isEmpty should be(true)
     }
   }
 
@@ -52,7 +52,7 @@ class OrderingTest extends FlatSpec with Matchers with TreeProvider {
     val tree = fromFile("traversal/SimpleInterpreter.scala")
     global.ask { () =>
       stackingTraverser.traverse(tree)
-      stackingTraverser.result.isEmpty should be (true)
+      stackingTraverser.result.isEmpty should be(true)
     }
   }
 }

@@ -5,6 +5,7 @@ import scala.tools.abide._
 import scala.tools.nsc._
 import scala.reflect.internal._
 import scala.reflect.internal.traversal._
+import scala.reflect.internal.util.NoPosition
 
 /**
  * FusingTraversalAnalyzerGenerator
@@ -18,9 +19,12 @@ import scala.reflect.internal.traversal._
  */
 object FusingTraversalAnalyzerGenerator extends AnalyzerGenerator {
   def getAnalyzer(global: Global, rules: List[Rule]): FusingTraversalAnalyzer = {
-    val traversalRules = rules.map(_ match {
-      case t: TraversalRule => t
-      case rule             => scala.sys.error("Unexpected rule type for TraversalAnalyzer : " + rule.getClass)
+    val traversalRules = rules.flatMap(_ match {
+      case t: TraversalRule =>
+        Some(t)
+      case rule =>
+        global.reporter.warning(NoPosition, "Skipping unexpected rule type for TraversalAnalyzer : " + rule.getClass)
+        None
     })
 
     new FusingTraversalAnalyzer(global, traversalRules)
@@ -32,7 +36,7 @@ object FusingTraversalAnalyzerGenerator extends AnalyzerGenerator {
 /**
  * FusingTraversalAnalyzer
  *
- * Analyzer that applies a list of [[TraversalRule]] instances to a given universe.Tree. The traversalsr
+ * Analyzer that applies a list of [[TraversalRule]] instances to a given universe.Tree. The traversals
  * specified in the TraversalRules are fused into a single-pass traversal that optimizes speed by relying
  * on a scala.reflect.internal.traversal.TraversalFusion (type based traversal performance enhancer).
  */
@@ -41,9 +45,7 @@ class FusingTraversalAnalyzer(val global: Global, rules: List[TraversalRule]) ex
 
   private val fused: Option[TraversalFusion { val universe: FusingTraversalAnalyzer.this.global.type }] =
     if (rules.isEmpty) None else Some(Fuse(global)(rules.map { rule =>
-      if (rule.context.universe != global)
-        scala.sys.error("Missmatch between analyzer and rule universe")
-
+      assert(rule.context.universe == global, "Missmatch between analyzer and rule universe")
       rule.asInstanceOf[Traversal { val universe: FusingTraversalAnalyzer.this.global.type }]
     }: _*))
 

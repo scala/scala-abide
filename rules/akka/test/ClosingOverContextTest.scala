@@ -24,7 +24,7 @@ class ClosingOverContextTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "not be closed over in onComplete" in {
@@ -43,6 +43,6 @@ class ClosingOverContextTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be(1) }
   }
 }

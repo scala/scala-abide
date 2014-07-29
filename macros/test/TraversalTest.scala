@@ -13,7 +13,7 @@ class TraversalTest extends FlatSpec with Matchers with TreeProvider {
     type State = Set[Tree]
     def emptyState : State = Set.empty
 
-    def add(tree : Tree) { transform(_ + tree) }
+    def add(tree : Tree) : Unit = transform(_ + tree)
 
     val step = optimize {
       case varDef @ q"$mods var $name : $tpt = $_" if varDef.symbol.owner.isMethod =>
@@ -61,16 +61,12 @@ class TraversalTest extends FlatSpec with Matchers with TreeProvider {
     type State = (List[Tree], Set[(Option[Tree], Tree)])
     def emptyState : State = (Nil, Set.empty)
 
-    def add(tree : Tree) {
-      transform(state => (state._1, state._2 + (state._1.headOption -> tree)))
-    }
+    def add(tree : Tree) : Unit = transform(state => (state._1, state._2 + (state._1.headOption -> tree)))
 
-    def enter(tree : Tree) {
-      transform(state => (tree :: state._1, state._2), state => state._1 match {
-        case x :: xs if x == tree => (xs, state._2)
-        case _ => state
-      })
-    }
+    def enter(tree : Tree) : Unit = transform(state => (tree :: state._1, state._2), state => state._1 match {
+      case x :: xs if x == tree => (xs, state._2)
+      case _ => state
+    })
 
     val step = optimize {
       case dd : DefDef =>
@@ -95,7 +91,7 @@ class TraversalTest extends FlatSpec with Matchers with TreeProvider {
     rec(tree, None)
   }
 
-  def niceTest(tree : global.Tree) {
+  def niceTest(tree : global.Tree) : Unit = {
     pathTraverser2.traverse(tree)
     val fast = pathTraverser2.result._2
     val naive = pathTraversal2(tree)

@@ -32,13 +32,6 @@ object Abide {
   private lazy val settings = new Settings(println)
 
   private lazy val reporter = new ConsoleReporter(settings)
-  /*
-    new Reporter {
-    protected def info0(pos : Position, msg : String, severity : Severity, force : Boolean) {
-      // TODO: keep track of warnings/errors/info
-    }
-  }
-  */
 
   private lazy val compiler = new AbideCompiler(settings, reporter)
 

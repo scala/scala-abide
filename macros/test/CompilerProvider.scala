@@ -13,30 +13,31 @@ import scala.reflect.internal.util._
  */
 trait CompilerProvider {
 
-  def silent : Boolean = false
+  def silent: Boolean = false
 
-  lazy val global : Global = {
+  lazy val global: Global = {
 
     def urls(classLoader: java.lang.ClassLoader): List[String] = classLoader match {
       case cl: java.net.URLClassLoader => cl.getURLs.toList.map(_.toString)
-      case c if c.getParent() != null => urls(c.getParent())
-      case c => scala.sys.error("invalid classloader")
+      case c if c.getParent() != null  => urls(c.getParent())
+      case c                           => scala.sys.error("invalid classloader")
     }
 
     val classpath = urls(java.lang.Thread.currentThread.getContextClassLoader)
 
     val settings = new scala.tools.nsc.Settings
     settings.usejavacp.value = false
-    (classpath :+ "/Users/nvoirol/scala/src/library").distinct.foreach { source =>
+    classpath.distinct.foreach { source =>
       settings.classpath.append(source)
       settings.bootclasspath.append(source)
     }
 
     val compiler = new Global(settings, if (silent) {
       new Reporter {
-        def info0(pos : Position, msg : String, severity : Severity, force : Boolean) = ()
+        def info0(pos: Position, msg: String, severity: Severity, force: Boolean) = ()
       }
-    } else {
+    }
+    else {
       new ConsoleReporter(settings)
     })
 
@@ -44,7 +45,8 @@ trait CompilerProvider {
       compiler.ask { () =>
         new compiler.Run
       }
-    } catch {
+    }
+    catch {
       case e: scala.reflect.internal.MissingRequirementError =>
         val msg = s"""Could not initialize the compiler!
         |  ${settings.userSetSettings.mkString("\n  ")}

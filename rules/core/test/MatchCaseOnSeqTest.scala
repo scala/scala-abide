@@ -17,7 +17,7 @@ class MatchCaseOnSeqTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be(1) }
   }
 
   it should "be matched with Nil" in {
@@ -30,7 +30,7 @@ class MatchCaseOnSeqTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   it should "not be matched by :: (even when Nil is around)" in {
@@ -43,7 +43,7 @@ class MatchCaseOnSeqTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be (1) }
+    global.ask { () => apply(rule)(tree).size should be(1) }
   }
 
   it should "work fine on other matchers" in {
@@ -56,7 +56,7 @@ class MatchCaseOnSeqTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
   "Lists" should "accept :: and Nil as matchers" in {
@@ -69,7 +69,7 @@ class MatchCaseOnSeqTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).isEmpty should be (true) }
+    global.ask { () => apply(rule)(tree).isEmpty should be(true) }
   }
 
 }

@@ -79,8 +79,9 @@ trait Traversal {
    * method in each step to update the internal state. Typically, helper methods will be provided for use in the [[step]]
    * partial function so [[transform]] doesn't need to be accessed directly.
    */
-  protected def state: State = if (_state != null) _state else {
-    scala.sys.error("Attempted to access traversal state before initialization!")
+  protected def state: State = {
+    assert(_state != null, "Attempted to access traversal state before initialization")
+    _state
   }
 
   /**

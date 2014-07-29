@@ -105,7 +105,7 @@ class SpeedAnalysis extends FunSuite with TreeProvider {
   }
   */
 
-  test("Fast traversal is fast in AddressBook.scala") {
+  ignore("Fast traversal is fast in AddressBook.scala") {
     val tree = fromFile("traversal/AddressBook.scala")
     global.ask { () =>
       val fastTime = speed("fast", tree, traverseFast)
@@ -117,7 +117,7 @@ class SpeedAnalysis extends FunSuite with TreeProvider {
     }
   }
 
-  test("Fast traversal is fast in SimpleInterpreter.scala") {
+  ignore("Fast traversal is fast in SimpleInterpreter.scala") {
     val tree = fromFile("traversal/SimpleInterpreter.scala")
     global.ask { () =>
       val fastTime = speed("fast", tree, traverseFast)
