@@ -3,7 +3,6 @@ import Keys._
 import com.typesafe.sbt.SbtScalariform.{ ScalariformKeys => sr, _ }
 
 // taken from sbt's build (modulo formatter preferences)
-// note: we're stuck on an old version of scalariform, which still thinks `requires` is a keyword
 object Formatting {
   lazy val BuildConfig = config("build") extend Compile
   lazy val BuildSbtConfig = config("buildsbt") extend Compile
@@ -11,11 +10,11 @@ object Formatting {
   lazy val settings: Seq[Setting[_]] = Seq() ++ scalariformSettings ++ prefs
   lazy val prefs: Seq[Setting[_]] = {
     import scalariform.formatter.preferences._
-    Seq(
-      sr.preferences := sr.preferences.value.setPreference(AlignSingleLineCaseStatements, true),
-      sr.preferences := sr.preferences.value.setPreference(CompactControlReadability, true),
-      sr.preferences := sr.preferences.value.setPreference(PreserveDanglingCloseParenthesis, true)
-    )
+    Seq(sr.preferences := sr.preferences.value
+        .setPreference(AlignSingleLineCaseStatements, true)
+        .setPreference(CompactControlReadability, true)
+        .setPreference(PreserveDanglingCloseParenthesis, true)
+       )
   }
   lazy val sbtFilesSettings: Seq[Setting[_]] = Seq() ++ scalariformSettings ++ prefs ++
     inConfig(BuildConfig)(configScalariformSettings) ++
