@@ -134,7 +134,7 @@ class AbidePlugin(val global: Global) extends Plugin {
     def newPhase(prev : Phase) = new StdPhase(prev) {
       override def name = AbidePlugin.this.name
 
-      def apply(unit : CompilationUnit) {
+      def apply(unit : CompilationUnit): Unit = {
         val warnings = analyzers.flatMap {
           gen => gen(_ => true)(unit.body)
         }
@@ -148,7 +148,7 @@ class AbidePlugin(val global: Global) extends Plugin {
   private var ruleClasses : List[String] = Nil
   private var analyzerClasses : List[String] = Nil
 
-  override def processOptions(options: List[String], error: String => Unit) {
+  override def processOptions(options: List[String], error: String => Unit): Unit = {
     for (option <- options) {
       if (option.startsWith("ruleClass:")) {
         ruleClasses ::= option.substring("ruleClass:".length)

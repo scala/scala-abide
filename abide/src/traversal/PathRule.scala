@@ -42,8 +42,8 @@ trait PathRule extends TraversalRule with ScopingTraversal {
   }
 
   /** Register element as latest path element traversed (pushes onto path stack) */
-  def enter(element : Element) { transform(_ enter element, _.leave) }
+  def enter(element : Element): Unit = { transform(_ enter element, _.leave) }
 
   /** Report a warning */
-  def nok(warning : Warning) { transform(_ nok warning) }
+  def nok(warning : Warning): Unit = { transform(_ nok warning) }
 }

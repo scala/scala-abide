@@ -91,7 +91,7 @@ trait Traversal {
   def result : State = if (!_error.isDefined) state else throw _error.get
 
   /** Updates the internal traversal state by applying function _f_ to the current internal state. */
-  protected[traversal] def transform(f : State => State) {
+  protected[traversal] def transform(f : State => State): Unit = {
     _state = f(state)
   }
 
@@ -99,7 +99,7 @@ trait Traversal {
    * Sets up traversal after a previous run (or for initial run) basically by copying the [[emptyState]] result to the traversal's
    * internal state variable
    */
-  protected[traversal] def init {
+  protected[traversal] def init: Unit = {
     _state = emptyState
     _error = None
   }
@@ -108,7 +108,7 @@ trait Traversal {
   private lazy val fused = Fuse(universe)(this.asInstanceOf[Traversal { val universe : Traversal.this.universe.type }])
 
   /** Perform traversal directly without fusing, mostly for testing purposes */
-  def traverse(tree : Tree) {
+  def traverse(tree : Tree): Unit = {
     fused.traverse(tree)
   }
 }

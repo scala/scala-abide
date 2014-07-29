@@ -33,8 +33,8 @@ trait ScopingRule extends TraversalRule with ScopingTraversal {
   }
 
   /** Register owner as current scope (pushes it onto scoping stack) */
-  def enter(owner : Owner) { transform(_ enter owner, _.leave) }
+  def enter(owner : Owner): Unit = { transform(_ enter owner, _.leave) }
 
   /** Reports a warning */
-  def nok(warning : Warning) { transform(_ nok warning) }
+  def nok(warning : Warning): Unit = { transform(_ nok warning) }
 }

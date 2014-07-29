@@ -39,7 +39,7 @@ trait ScopingTraversal extends Traversal {
    *
    * @see [[ScopingTraversalFusion]]
    */
-  protected[traversal] def transform(enter : State => State, leave : State => State) {
+  protected[traversal] def transform(enter : State => State, leave : State => State): Unit = {
     transform(enter)
     leaver = Some(leaver match {
       case Some(l) => leave andThen l
@@ -58,7 +58,7 @@ trait ScopingTraversal extends Traversal {
     l
   }
 
-  protected[traversal] override def init {
+  protected[traversal] override def init: Unit = {
     super.init
     leaver = None
   }

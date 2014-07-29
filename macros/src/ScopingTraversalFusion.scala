@@ -15,8 +15,8 @@ trait ScopingTraversalFusion extends TraversalFusion {
 
   private type Leaver = (Traversal, (Nothing => Any))
 
-  private def foreach(tree : Tree)(enter : Tree => List[Leaver]) {
-    def rec(tree : Tree) {
+  private def foreach(tree : Tree)(enter : Tree => List[Leaver]): Unit = {
+    def rec(tree : Tree): Unit = {
       val leavers = enter(tree)
       tree.children.foreach(rec(_))
       leavers.foreach { case (traversal, leaver) =>
@@ -27,7 +27,7 @@ trait ScopingTraversalFusion extends TraversalFusion {
     rec(tree)
   }
 
-  override def traverse(tree : Tree) {
+  override def traverse(tree : Tree): Unit = {
     traversals.foreach(_.init)
 
     def enter(tree : Tree) : List[Leaver] = getTraversals(tree).flatMap { traversal =>

@@ -29,12 +29,12 @@ trait ExistentialRule extends TraversalRule {
   }
 
   /** Marks a key as valid forever */
-  def ok(key : Key) { transform(_ ok key) }
+  def ok(key : Key): Unit = { transform(_ ok key) }
 
   /**
    * Marks a key as possibly invalid until an ok is found or traversal ends (in which case the key is considered as globally invalid).
    * If such a state is reached, the warning that was assigned to the key is considered a valid warning that should be reported.
    */
-  def nok(key : Key, warning : Warning) { transform(_ nok (key, warning)) }
+  def nok(key : Key, warning : Warning): Unit = { transform(_ nok (key, warning)) }
 
 }

@@ -64,8 +64,8 @@ trait TraversalFusion {
     (classToTraversals.getOrElse(tree.getClass, Nil) ++ allClassTraversals).toList
   }
 
-  private def foreach(tree : Tree)(f : Tree => Unit) {
-    def rec(tree : Tree) {
+  private def foreach(tree : Tree)(f : Tree => Unit): Unit = {
+    def rec(tree : Tree): Unit = {
       f(tree)
       tree.children.foreach(rec(_))
     }
@@ -74,7 +74,7 @@ trait TraversalFusion {
   }
 
   /** Applies the fused traversals to a tree (in a foreach manner) */
-  def traverse(tree : Tree) {
+  def traverse(tree : Tree): Unit = {
     traversals.foreach(_.init)
     foreach(tree)(tree => getTraversals(tree).foreach {
       traversal => traversal.apply(tree)

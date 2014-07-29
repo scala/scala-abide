@@ -43,7 +43,7 @@ object Abide {
   private lazy val compiler = new AbideCompiler(settings, reporter)
 
   /** Main method for the Abide framework, transparently passes all arguments to the [[AbideCompiler]] instance */
-  def main(args : Array[String]) {
+  def main(args : Array[String]): Unit = {
     val command = new CompilerCommand(args.toList, settings)
     val run = new compiler.Run
     run.compile(command.files)

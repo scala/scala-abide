@@ -20,5 +20,5 @@ trait WarningRule extends TraversalRule {
   }
 
   /** Reports a warning */
-  def nok(warning : Warning) { transform(_ nok warning) }
+  def nok(warning : Warning): Unit = { transform(_ nok warning) }
 }
