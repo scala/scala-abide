@@ -3,18 +3,18 @@ package com.typesafe.abide.akka
 import scala.tools.abide._
 import scala.tools.abide.traversal._
 
-class SenderInFuture(val context : Context) extends PathRule {
+class SenderInFuture(val context: Context) extends PathRule {
   import context.universe._
 
   val name = "sender-in-future"
 
-  case class Warning(tree : Tree) extends RuleWarning {
+  case class Warning(tree: Tree) extends RuleWarning {
     val pos = tree.pos
     val message = s"sender() is not stable and should not be accessed in non-thread-safe environments"
   }
 
   sealed abstract class Element
-  case class Receive(sym : Symbol) extends Element
+  case class Receive(sym: Symbol) extends Element
   case object Future extends Element
 
   lazy val actorSym = rootMirror.getClassByName(TypeName("akka.actor.Actor"))
@@ -32,7 +32,7 @@ class SenderInFuture(val context : Context) extends PathRule {
       enter(Receive(dd.symbol.owner))
     case q"$caller(..$args)" if caller.symbol == futureSym => state.last match {
       case Some(Receive(sym)) => enter(Future)
-      case _ =>
+      case _                  =>
     }
     case tree @ Apply(sender @ Select(actor, TermName("sender")), _) if sender.symbol == senderSym =>
       if (state matches (Receive(actor.symbol), Future)) {

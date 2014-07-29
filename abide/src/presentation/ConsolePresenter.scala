@@ -8,11 +8,11 @@ import scala.tools.abide._
  *
  * Simple [[Presenter]] that outputs warnings as compiler warnings
  */
-class ConsolePresenter(protected val global : Global) extends Presenter {
+class ConsolePresenter(protected val global: Global) extends Presenter {
   import global._
 
   /** Outputs Abide warnings as compiler warnings */
-  def apply(unit : CompilationUnit, warnings : List[Warning]) : Unit = {
+  def apply(unit: CompilationUnit, warnings: List[Warning]): Unit = {
     warnings.foreach { warning =>
       global.warning(warning.pos, warning.message)
     }

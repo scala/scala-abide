@@ -34,7 +34,7 @@ import scala.reflect.internal.traversal._
  * by the framework since it subsumes the naive version (see [[scala.tools.abide.compiler.AbidePlugin]] for more info).
  */
 trait TraversalRule extends OptimizingTraversal with Rule {
-  val universe : context.universe.type = context.universe
+  val universe: context.universe.type = context.universe
 
   val analyzer = NaiveTraversalAnalyzerGenerator
 }

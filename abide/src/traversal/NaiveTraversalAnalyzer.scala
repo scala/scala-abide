@@ -10,14 +10,14 @@ import scala.reflect.internal.traversal._
  * NaiveTraversalAnalyzerGenerator
  *
  * AnalyzerGenerator that performs single-pass traversal for each given [[TraversalRule]] instance.
- * 
+ *
  * @see [[NaiveTraversalAnalyzer]]
  */
 object NaiveTraversalAnalyzerGenerator extends AnalyzerGenerator {
-  def getAnalyzer(global : Global, rules : List[Rule]) : NaiveTraversalAnalyzer = {
+  def getAnalyzer(global: Global, rules: List[Rule]): NaiveTraversalAnalyzer = {
     val traversalRules = rules.map(_ match {
-      case t : TraversalRule => t
-      case rule => scala.sys.error("Unexpected rule type for TraversalAnalyzer : " + rule.getClass)
+      case t: TraversalRule => t
+      case rule             => scala.sys.error("Unexpected rule type for TraversalAnalyzer : " + rule.getClass)
     })
 
     new NaiveTraversalAnalyzer(global, traversalRules)
@@ -37,15 +37,16 @@ object NaiveTraversalAnalyzerGenerator extends AnalyzerGenerator {
  * [[FusingTraversalAnalyzer]] packaged alongside, but it serves to display how easily new analyzers can be
  * plugged in to the Abide framework (ie. simply transitively subsume the previous analyzer)
  */
-class NaiveTraversalAnalyzer(val global : Global, rules : List[TraversalRule]) extends Analyzer {
+class NaiveTraversalAnalyzer(val global: Global, rules: List[TraversalRule]) extends Analyzer {
   import global._
 
-  def apply(tree : Tree) : List[Warning] = rules.flatMap { rule =>
-    rule.asInstanceOf[Traversal { val universe : NaiveTraversalAnalyzer.this.global.type }].traverse(tree)
+  def apply(tree: Tree): List[Warning] = rules.flatMap { rule =>
+    rule.asInstanceOf[Traversal { val universe: NaiveTraversalAnalyzer.this.global.type }].traverse(tree)
     try {
       rule.result.warnings
-    } catch {
-      case t : rule.TraversalError =>
+    }
+    catch {
+      case t: rule.TraversalError =>
         global.warning(t.pos, t.message)
         global.debugStack(t.cause)
         Nil

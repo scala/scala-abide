@@ -2,9 +2,9 @@ package scala.reflect.internal.traversal
 
 /**
  * Traversal
- * 
+ *
  * Fusable traversal base class
- * 
+ *
  * Declared in seperate context from [[TraversalFusion]] to align with Abide rules
  * so these can be defined in their own file. This provides a nicer API for users, but makes universe
  * sharing harder. This difficulty is however completely hidden from the end-user and dealt with internally.
@@ -18,7 +18,7 @@ package scala.reflect.internal.traversal
  * @see [[TraversalFusion]]
  */
 trait Traversal {
-  protected[traversal] val universe : scala.reflect.api.Universe
+  protected[traversal] val universe: scala.reflect.api.Universe
   import universe._
 
   /**
@@ -27,14 +27,14 @@ trait Traversal {
    * Must be a value member of the [[Traversal]] class since the optimizer macro
    * needs to inject class discoveries somewhere (ie. it adds members to PartialFunction subtype)
    */
-  val step : PartialFunction[Tree, Unit]
+  val step: PartialFunction[Tree, Unit]
 
   /** Errors discovered during traversal */
-  case class TraversalError(pos : Position, cause : Throwable) extends RuntimeException(cause) {
+  case class TraversalError(pos: Position, cause: Throwable) extends RuntimeException(cause) {
     def message = s"Error occured during traversal. Cause: ${cause.getMessage}\nUse -Ydebug to view stacktrace"
   }
 
-  private var _error : Option[TraversalError] = None
+  private var _error: Option[TraversalError] = None
 
   /**
    * Safely performs stepping and deals with issues in traverser (like exception throwing)
@@ -44,14 +44,15 @@ trait Traversal {
    *
    * @return whether we actually applied a step (basically when step.isDefinedAt(tree) is true)
    */
-  private [traversal] def apply(tree : Tree) : Boolean = {
+  private[traversal] def apply(tree: Tree): Boolean = {
     if (_error.isDefined) false else try {
       if (!step.isDefinedAt(tree)) false else {
         step.apply(tree)
         true
       }
-    } catch {
-      case t : Throwable =>
+    }
+    catch {
+      case t: Throwable =>
         _error = Some(TraversalError(tree.pos, t))
         false
     }
@@ -67,9 +68,9 @@ trait Traversal {
   type State
 
   /** Initial state value used during traversal */
-  def emptyState : State
+  def emptyState: State
 
-  private var _state : State = _
+  private var _state: State = _
 
   /**
    * Current traversal state.
@@ -78,7 +79,7 @@ trait Traversal {
    * method in each step to update the internal state. Typically, helper methods will be provided for use in the [[step]]
    * partial function so [[transform]] doesn't need to be accessed directly.
    */
-  protected def state : State = if (_state != null) _state else {
+  protected def state: State = if (_state != null) _state else {
     scala.sys.error("Attempted to access traversal state before initialization!")
   }
 
@@ -88,10 +89,10 @@ trait Traversal {
    * If an error was encountered during the traversal, this error will be thrown here so the calling code can catch
    * it and deal with the error accordingly.
    */
-  def result : State = if (!_error.isDefined) state else throw _error.get
+  def result: State = if (!_error.isDefined) state else throw _error.get
 
   /** Updates the internal traversal state by applying function _f_ to the current internal state. */
-  protected[traversal] def transform(f : State => State): Unit = {
+  protected[traversal] def transform(f: State => State): Unit = {
     _state = f(state)
   }
 
@@ -105,10 +106,10 @@ trait Traversal {
   }
 
   /* Cache only used for debugging, see [[traverse]] */
-  private lazy val fused = Fuse(universe)(this.asInstanceOf[Traversal { val universe : Traversal.this.universe.type }])
+  private lazy val fused = Fuse(universe)(this.asInstanceOf[Traversal { val universe: Traversal.this.universe.type }])
 
   /** Perform traversal directly without fusing, mostly for testing purposes */
-  def traverse(tree : Tree): Unit = {
+  def traverse(tree: Tree): Unit = {
     fused.traverse(tree)
   }
 }

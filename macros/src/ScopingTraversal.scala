@@ -31,7 +31,7 @@ package scala.reflect.internal.traversal
 trait ScopingTraversal extends Traversal {
   import universe._
 
-  private var leaver : Option[State => State] = None
+  private var leaver: Option[State => State] = None
 
   /**
    * The [[ScopingTraversal]] transformer can also specify a leaving transformation that will be applied
@@ -39,11 +39,11 @@ trait ScopingTraversal extends Traversal {
    *
    * @see [[ScopingTraversalFusion]]
    */
-  protected[traversal] def transform(enter : State => State, leave : State => State): Unit = {
+  protected[traversal] def transform(enter: State => State, leave: State => State): Unit = {
     transform(enter)
     leaver = Some(leaver match {
       case Some(l) => leave andThen l
-      case None => leave
+      case None    => leave
     })
   }
 
@@ -52,7 +52,7 @@ trait ScopingTraversal extends Traversal {
    *
    * @see [[ScopingTraversalFusion]]
    */
-  protected[traversal] def consumeLeaver() : Option[State => State] = {
+  protected[traversal] def consumeLeaver(): Option[State => State] = {
     val l = leaver
     leaver = None
     l

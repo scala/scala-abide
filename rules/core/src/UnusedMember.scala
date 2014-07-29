@@ -3,7 +3,7 @@ package com.typesafe.abide.core
 import scala.tools.abide._
 import scala.tools.abide.traversal._
 
-class UnusedMember(val context : Context) extends ExistentialRule {
+class UnusedMember(val context: Context) extends ExistentialRule {
   import context.universe._
 
   val name = "unused-member"
@@ -20,7 +20,7 @@ class UnusedMember(val context : Context) extends ExistentialRule {
 
     val isMainArgs = isValueParameter && owner.name == TermName("main") && (owner.asMethod.paramLists match {
       case List(List(param)) => param.typeSignature == typeOf[Array[String]]
-      case _ => false
+      case _                 => false
     })
 
     val ignore = ((isValueParameter && owner.isDeferred) // abstract method, params are never used
@@ -30,7 +30,7 @@ class UnusedMember(val context : Context) extends ExistentialRule {
       || sym.isConstant // must ignore constant types since these are folded during type checking
       || sym.name.containsChar('$') // synthetic names that are not marked as SYNTHETIC: `(_, _) => ???`
       || isValueParameter &&
-        (owner.hasFlag(Flag.OVERRIDE) || owner.overrides.nonEmpty)) // overriding a method needs to keep all (unused) parameters
+      (owner.hasFlag(Flag.OVERRIDE) || owner.overrides.nonEmpty)) // overriding a method needs to keep all (unused) parameters
 
     def getter(sym: Symbol): Symbol = sym.getter
     val privateVal = if (getter(sym) != NoSymbol) getter(sym).isPrivate else sym.isPrivate
@@ -42,10 +42,10 @@ class UnusedMember(val context : Context) extends ExistentialRule {
   }
 
   val step = optimize {
-    case vd : ValDef if shouldConsider(vd.symbol) =>
+    case vd: ValDef if shouldConsider(vd.symbol) =>
       nok(vd.symbol, Warning(vd))
 
-    case dd : DefDef if shouldConsider(dd.symbol) =>
+    case dd: DefDef if shouldConsider(dd.symbol) =>
       nok(dd.symbol, Warning(dd))
 
     case tree @ q"$pre.$name" =>
@@ -56,7 +56,8 @@ class UnusedMember(val context : Context) extends ExistentialRule {
         if (tree.symbol.owner.isConstructor) {
           val paramAccessors = tree.symbol.enclClass.constrParamAccessors
           paramAccessors.find(tree.symbol.name == _.name).toSeq :+ tree.symbol
-        } else
+        }
+        else
           Seq(tree.symbol)
       affectedSymbols.foreach(ok(_))
   }

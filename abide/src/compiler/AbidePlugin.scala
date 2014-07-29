@@ -2,7 +2,7 @@ package scala.tools.abide.compiler
 
 import scala.tools.nsc._
 import scala.tools.nsc.plugins._
-import scala.reflect.runtime.{universe => ru}
+import scala.reflect.runtime.{ universe => ru }
 
 import scala.tools.abide._
 import scala.tools.abide.presentation._
@@ -44,7 +44,7 @@ class AbidePlugin(val global: Global) extends Plugin {
   val name = "abide"
   val description = "static code analysis for Scala"
 
-  val components : List[PluginComponent] = List(component)
+  val components: List[PluginComponent] = List(component)
 
   private lazy val classLoader = new java.net.URLClassLoader(
     abideCp.split(":").filter(_ != "").map(f => new java.io.File(f).toURI.toURL),
@@ -67,8 +67,8 @@ class AbidePlugin(val global: Global) extends Plugin {
   private lazy val ruleContexts = {
     import ru._
 
-    def contextGenerator(sym : ru.Symbol) : ru.ModuleSymbol = sym.asClass.baseClasses.collectFirst {
-      case tpe : ru.TypeSymbol if tpe.toType.companion <:< ru.typeOf[ContextGenerator] =>
+    def contextGenerator(sym: ru.Symbol): ru.ModuleSymbol = sym.asClass.baseClasses.collectFirst {
+      case tpe: ru.TypeSymbol if tpe.toType.companion <:< ru.typeOf[ContextGenerator] =>
         tpe.toType.companion.typeSymbol.asClass.module.asModule
     }.get
 
@@ -79,8 +79,8 @@ class AbidePlugin(val global: Global) extends Plugin {
       rule -> generatorMirror.instance.asInstanceOf[ContextGenerator]
     }
 
-    def typeTag[T : ru.TypeTag](obj : T) : ru.TypeTag[T] = ru.typeTag[T]
-    def generalize[T1 <: Context : ru.TypeTag, T2 <: Context : ru.TypeTag](o1 : T1, o2 : T2) : Context = {
+    def typeTag[T: ru.TypeTag](obj: T): ru.TypeTag[T] = ru.typeTag[T]
+    def generalize[T1 <: Context: ru.TypeTag, T2 <: Context: ru.TypeTag](o1: T1, o2: T2): Context = {
       if (typeTag(o1).tpe <:< typeTag(o2).tpe) o1 else o2
     }
 
@@ -97,44 +97,46 @@ class AbidePlugin(val global: Global) extends Plugin {
     val constructorMirror = ruleMirror reflectConstructor constructorSymbol
     val context = ruleContexts(rule)
 
-    constructorMirror(context).asInstanceOf[Rule { val context : Context { val universe : AbidePlugin.this.global.type } }]
+    constructorMirror(context).asInstanceOf[Rule { val context: Context { val universe: AbidePlugin.this.global.type } }]
   }
 
-  private lazy val analyzers : List[(Rule => Boolean) => Analyzer { val global : AbidePlugin.this.global.type }] = {
-    def generalize(g1 : AnalyzerGenerator, g2 : AnalyzerGenerator) : AnalyzerGenerator = {
-      def fix[A](a : A)(f : A => A) : A = { val na = f(a); if (na == a) na else fix(na)(f) }
-      val g2Subsumes : Set[AnalyzerGenerator] = fix(g2.subsumes)(set => set ++ set.flatMap(_.subsumes))
+  private lazy val analyzers: List[(Rule => Boolean) => Analyzer { val global: AbidePlugin.this.global.type }] = {
+    def generalize(g1: AnalyzerGenerator, g2: AnalyzerGenerator): AnalyzerGenerator = {
+      def fix[A](a: A)(f: A => A): A = { val na = f(a); if (na == a) na else fix(na)(f) }
+      val g2Subsumes: Set[AnalyzerGenerator] = fix(g2.subsumes)(set => set ++ set.flatMap(_.subsumes))
       if (g2Subsumes(g1)) g2 else g1
     }
 
-    val allGenerators : List[(Rule, AnalyzerGenerator)] = rules.map(rule => rule -> rule.analyzer)
-    val ruleToGenerator = allGenerators.foldLeft(List.empty[(Rule, AnalyzerGenerator)]) { case (list, (rule, generator)) =>
-      val generalized = analyzerGenerators.foldLeft(generator)((acc, gen) => generalize(gen, acc))
-      val bottomGen = list.foldLeft(generalized) { case (acc, (rule, generator)) => generalize(generator, acc) }
-      (rule -> bottomGen) :: (list map { case (rule, gen) => rule -> generalize(gen, bottomGen) })
+    val allGenerators: List[(Rule, AnalyzerGenerator)] = rules.map(rule => rule -> rule.analyzer)
+    val ruleToGenerator = allGenerators.foldLeft(List.empty[(Rule, AnalyzerGenerator)]) {
+      case (list, (rule, generator)) =>
+        val generalized = analyzerGenerators.foldLeft(generator)((acc, gen) => generalize(gen, acc))
+        val bottomGen = list.foldLeft(generalized) { case (acc, (rule, generator)) => generalize(generator, acc) }
+        (rule -> bottomGen) :: (list map { case (rule, gen) => rule -> generalize(gen, bottomGen) })
     }
 
-    ruleToGenerator.groupBy(_._2).toList.map { case (generator, rulePairs) =>
-      val rules = rulePairs.map(_._1)
-      (filter : Rule => Boolean) => {
-        val analyzer = generator.getAnalyzer(global, rules.filter(filter))
-        analyzer.asInstanceOf[Analyzer { val global : AbidePlugin.this.global.type }]
-      }
+    ruleToGenerator.groupBy(_._2).toList.map {
+      case (generator, rulePairs) =>
+        val rules = rulePairs.map(_._1)
+        (filter: Rule => Boolean) => {
+          val analyzer = generator.getAnalyzer(global, rules.filter(filter))
+          analyzer.asInstanceOf[Analyzer { val global: AbidePlugin.this.global.type }]
+        }
     }
   }
 
-  private lazy val presenter = new presentation.ConsolePresenter(global).asInstanceOf[Presenter { val global : AbidePlugin.this.global.type }]
+  private lazy val presenter = new presentation.ConsolePresenter(global).asInstanceOf[Presenter { val global: AbidePlugin.this.global.type }]
 
   private[abide] object component extends {
-    val global : AbidePlugin.this.global.type = AbidePlugin.this.global
+    val global: AbidePlugin.this.global.type = AbidePlugin.this.global
   } with PluginComponent {
     val runsAfter = List("typer")
     val phaseName = AbidePlugin.this.name
 
-    def newPhase(prev : Phase) = new StdPhase(prev) {
+    def newPhase(prev: Phase) = new StdPhase(prev) {
       override def name = AbidePlugin.this.name
 
-      def apply(unit : CompilationUnit): Unit = {
+      def apply(unit: CompilationUnit): Unit = {
         val warnings = analyzers.flatMap {
           gen => gen(_ => true)(unit.body)
         }
@@ -144,20 +146,23 @@ class AbidePlugin(val global: Global) extends Plugin {
     }
   }
 
-  private var abideCp : String = ""
-  private var ruleClasses : List[String] = Nil
-  private var analyzerClasses : List[String] = Nil
+  private var abideCp: String = ""
+  private var ruleClasses: List[String] = Nil
+  private var analyzerClasses: List[String] = Nil
 
   override def processOptions(options: List[String], error: String => Unit): Unit = {
     for (option <- options) {
       if (option.startsWith("ruleClass:")) {
         ruleClasses ::= option.substring("ruleClass:".length)
-      } else if (option.startsWith("analyzerClass:")) {
+      }
+      else if (option.startsWith("analyzerClass:")) {
         analyzerClasses ::= option.substring("analyzerClass:".length)
-      } else if (option.startsWith("abidecp:")) {
+      }
+      else if (option.startsWith("abidecp:")) {
         abideCp = option.substring("abidecp:".length)
-      } else {
-        scala.sys.error("Option not understood: "+option)
+      }
+      else {
+        scala.sys.error("Option not understood: " + option)
       }
     }
   }

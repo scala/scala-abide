@@ -15,27 +15,28 @@ trait ScopingTraversalFusion extends TraversalFusion {
 
   private type Leaver = (Traversal, (Nothing => Any))
 
-  private def foreach(tree : Tree)(enter : Tree => List[Leaver]): Unit = {
-    def rec(tree : Tree): Unit = {
+  private def foreach(tree: Tree)(enter: Tree => List[Leaver]): Unit = {
+    def rec(tree: Tree): Unit = {
       val leavers = enter(tree)
       tree.children.foreach(rec(_))
-      leavers.foreach { case (traversal, leaver) =>
-        traversal.transform(leaver.asInstanceOf[traversal.State => traversal.State])
+      leavers.foreach {
+        case (traversal, leaver) =>
+          traversal.transform(leaver.asInstanceOf[traversal.State => traversal.State])
       }
     }
 
     rec(tree)
   }
 
-  override def traverse(tree : Tree): Unit = {
+  override def traverse(tree: Tree): Unit = {
     traversals.foreach(_.init)
 
-    def enter(tree : Tree) : List[Leaver] = getTraversals(tree).flatMap { traversal =>
+    def enter(tree: Tree): List[Leaver] = getTraversals(tree).flatMap { traversal =>
       val defined = traversal.apply(tree)
 
-      val leaver : Option[Nothing => Any] = if (!defined) None else traversal match {
-        case scoper : ScopingTraversal => scoper.consumeLeaver
-        case _ => None
+      val leaver: Option[Nothing => Any] = if (!defined) None else traversal match {
+        case scoper: ScopingTraversal => scoper.consumeLeaver
+        case _                        => None
       }
 
       leaver.map(l => traversal -> l)
@@ -44,6 +45,4 @@ trait ScopingTraversalFusion extends TraversalFusion {
     foreach(tree)(enter)
   }
 }
-
-
 

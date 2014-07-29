@@ -13,9 +13,9 @@ import scala.tools.abide._
  * @see [[ConsolePresenter]] for a concrete example
  */
 trait Presenter {
-  protected val global : Global
+  protected val global: Global
   import global._
 
   /** Generate output from warnings produced by Abide analysis */
-  def apply(unit : CompilationUnit, warnings : List[Warning]) : Unit
+  def apply(unit: CompilationUnit, warnings: List[Warning]): Unit
 }
