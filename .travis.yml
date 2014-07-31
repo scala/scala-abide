@@ -1,0 +1,8 @@
+language: scala
+script:
+  - sbt clean update compile test
+jdk:
+  - openjdk7
+notifications:
+  email:
+    - adriaan.moors@typesafe.com

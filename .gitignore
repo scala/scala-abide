@@ -1,0 +1,8 @@
+core/project/target
+core/target
+rules/project/target
+rules/target
+project/target
+target
+*.swp
+*.BAK

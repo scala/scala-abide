@@ -1,0 +1,4 @@
+<plugin>
+  <name>abide</name>
+  <classname>scala.tools.abide.compiler.AbidePlugin</classname>
+</plugin>
