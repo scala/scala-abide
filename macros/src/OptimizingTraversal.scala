@@ -33,23 +33,56 @@ object OptimizingMacros {
       }
     }
 
-    def treeClasses(u: Tree, classes: String*): Set[Tree] = {
-      classes.map(cls => q"classOf[$u.${TypeName(cls)}]").toSet
-    }
+    def treeClasses(u: Tree, classes: String*): Set[Tree] = classes.map { cls =>
+      if (cls.endsWith("$")) {
+        q"$u.${TermName(cls.substring(0, cls.length - 1))}.getClass"
+      }
+      else {
+        q"classOf[$u.${TypeName(cls)}]"
+      }
+    }.toSet
 
+    /**
+     * /!\ WARNING /!\
+     *
+     * Since we are using class matching for traversal optimization and quasiquotes use subtype matching,
+     * there can be issues with matching tree subtypes! This is managed by using class sets for matching
+     * so all sub-classes of the one matched by subtype matching in the quasiquote will be added to the
+     * class-to-traversal map.
+     *
+     * All new conversion rules (ie. case statement) should be accompanied by at least one test in
+     * test/MacroTest.scala to make sure no trees are skipped by the subtype matching!
+     *
+     * DON'T FORGET TO WRITE TESTS FOR NEW CONVERSIONS
+     */
     def treeToClass(t: Tree): Set[Tree] = t match {
-      case Selection(universe, "internal", "reificationSupport", "SyntacticMatch")      => treeClasses(universe, "Match")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticVarDef")     => treeClasses(universe, "ValDef")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticValDef")     => treeClasses(universe, "ValDef")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticDefDef")     => treeClasses(universe, "DefDef")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticAssign")     => treeClasses(universe, "Assign")
-      case Selection(universe, "internal", "reificationSupport", "SyntacticSelectTerm") => treeClasses(universe, "Select")
+      case Selection(universe, "internal", "reificationSupport", "SyntacticMatch") =>
+        treeClasses(universe, "Match")
+
+      case Selection(universe, "internal", "reificationSupport", "SyntacticVarDef") =>
+        treeClasses(universe, "ValDef")
+
+      case Selection(universe, "internal", "reificationSupport", "SyntacticValDef") =>
+        treeClasses(universe, "ValDef", "noSelfType$")
+
+      case Selection(universe, "internal", "reificationSupport", "SyntacticDefDef") =>
+        treeClasses(universe, "DefDef")
+
+      case Selection(universe, "internal", "reificationSupport", "SyntacticAssign") =>
+        treeClasses(universe, "Assign")
+
+      case Selection(universe, "internal", "reificationSupport", "SyntacticSelectTerm") =>
+        treeClasses(universe, "Select")
+
       case Selection(universe, "internal", "reificationSupport", "SyntacticApplied") =>
-        treeClasses(universe, "UnApply", "Apply", "ApplyToImplicitArgs", "ApplyImplicitView")
+        treeClasses(universe, "UnApply", "Apply", "ApplyToImplicitArgs", "ApplyImplicitView", "pendingSuperCall$")
+
       case Selection(universe, "internal", "reificationSupport", "SyntacticForYield") =>
         treeClasses(universe, "Apply", "ApplyToImplicitArgs", "ApplyImplicitView")
+
       case Selection(universe, "internal", "reificationSupport", "SyntacticFor") =>
         treeClasses(universe, "Apply", "ApplyToImplicitArgs", "ApplyImplicitView")
+
       case _ =>
         c.warning(t.pos, "Unmanaged quasiquote: " + t + "\n" +
           "You can file this warning as a bug report at https://github.com/scala/scala-abide")
@@ -72,19 +105,53 @@ object OptimizingMacros {
     }
 
     def typeClasses(tpe: Type, members: String*): Set[Tree] = members.map { m =>
-      val memberType: Type = tpe.members.find(_.name == TypeName(m)).get.asType.toType
+      val memberType = if (m.endsWith("$")) {
+        val termName = TermName(m.substring(0, m.length - 1))
+        val memberObj = tpe.members.find(_.name == termName).get
+        memberObj.asModule.moduleClass.asType.toType
+      }
+      else {
+        val typeName = TypeName(m)
+        tpe.members.find(_.name == typeName).get.asType.toType
+      }
       q"scala.reflect.classTag[$memberType].runtimeClass"
     }.toSet
 
+    /**
+     * /!\ WARNING /!\
+     *
+     * Since we are using class matching for traversal optimization and we are extracting subtype matches
+     * in the macro, there can be issues with matching tree subtypes!
+     *
+     * See the warning in [[treeToClass]] for more.
+     *
+     * DON'T FORGET TO WRITE TESTS FOR NEW CONVERSIONS
+     */
     def typeToClass(tree: Tree, t: Type): Set[Tree] = t match {
-      case Reference(tpe, "Bind")   => typeClasses(tpe, "Bind")
-      case Reference(tpe, "Match")  => typeClasses(tpe, "Match")
-      case Reference(tpe, "Ident")  => typeClasses(tpe, "Ident")
-      case Reference(tpe, "Select") => typeClasses(tpe, "Select")
-      case Reference(tpe, "DefDef") => typeClasses(tpe, "DefDef")
-      case Reference(tpe, "ValDef") => typeClasses(tpe, "ValDef")
-      case Reference(tpe, "Assign") => typeClasses(tpe, "Assign")
-      case Reference(tpe, "Apply")  => typeClasses(tpe, "Apply", "ApplyToImplicitArgs", "ApplyImplicitView")
+      case Reference(tpe, "Bind") =>
+        typeClasses(tpe, "Bind")
+
+      case Reference(tpe, "Match") =>
+        typeClasses(tpe, "Match")
+
+      case Reference(tpe, "Ident") =>
+        typeClasses(tpe, "Ident")
+
+      case Reference(tpe, "Select") =>
+        typeClasses(tpe, "Select")
+
+      case Reference(tpe, "DefDef") =>
+        typeClasses(tpe, "DefDef")
+
+      case Reference(tpe, "ValDef") =>
+        typeClasses(tpe, "ValDef", "noSelfType$")
+
+      case Reference(tpe, "Assign") =>
+        typeClasses(tpe, "Assign")
+
+      case Reference(tpe, "Apply") =>
+        typeClasses(tpe, "Apply", "ApplyToImplicitArgs", "ApplyImplicitView", "pendingSuperCall$")
+
       case _ =>
         c.warning(tree.pos, "Unmanaged type: " + t + "\n" +
           "You can file this warning as a bug report at https://github.com/scala/scala-abide")
