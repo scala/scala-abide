@@ -11,18 +11,31 @@ optimization away from the rule writter.
 ### Sbt Plugin
 
 Activate the sbt-abide plugin in both scala 2.10 and 2.11 projects by extending your `project/plugin.sbt` file with
+
 ```scala
-addSbtPlugin("com.typesafe" % "abide" % "0.1-SNAPSHOT")
+addSbtPlugin("com.typesafe" % "sbt-abide" % "0.1-SNAPSHOT")
+```
+> **abide** requires Sbt version 0.13.5 or later. Make sure you have the following line in `project/build.properties`
+
+```
+sbt.version=0.13.5
 ```
 
-Then choose the rule libraries by adding the required jars to your dependencies in your project definitions (eg. `build.sbt`)
+> At this moment, **abide** has not been released. You need to run `sbt publish-local` in a local checkout of the abide repository.
+
+Now you need to choose the rule libraries by adding the required jars to your dependencies in your project definitions (eg. `build.sbt`). Notice the `abide` configuration at the end of the line.
 ```scala
-libraryDependencies += "com.typesafe" % "abide-samples" % "0.1-SNAPSHOT" % "abide"
+libraryDependencies += "com.typesafe" %% "abide-core" % "0.1-SNAPSHOT" % "abide"
 ```
-Note that one can also use sbt projects as rule libraries by using `dependsOn(rules % "abide")` in the project definition.
+One can also use sbt projects as rule libraries by using `dependsOn(rules % "abide")` in the project definition. This allows one to define project-specific rules!
 
 This mode can run on scala 2.10 projects by using the compiler `-Xsource:2.10` flag (automatically managed by
-the plugin), however one _must_ force the use of the **abide** libraries version built against scala 2.11!
+the plugin), however one _must_ force the use of the **abide** libraries version built against scala 2.11! You can do that by specifying the full cross-compiled name, instead of relying on the `%%` operator:
+
+```scala
+libraryDependencies += "com.typesafe" % "abide-core_2.11" % "0.1-SNAPSHOT" % "abide"
+```
+
 
 ### Compiler Plugin
 
@@ -62,11 +75,11 @@ Note that this feature, as in the compiler plugin case, can only be used on **sc
 
 The **abide** framework comes with a few pre-made rule packages that can be selectively enabled as discussed in the [previous section](#using-the-tool). The list of available packages along with the associated ivy dependency are:
 
-1. [rules/core](/wiki/core-rules.md) provided by `"com.typesafe" % "abide-core" % "0.1-SNAPSHOT"`
+1. [rules/core](/wiki/core-rules.md) provided by `"com.typesafe" %% "abide-core" % "0.1-SNAPSHOT"`
 
-2. [rules/extra](/wiki/extra-rules.md) provided by `"com.typesafe" % "abide-extra" % "0.1-SNAPSHOT"`
+2. [rules/extra](/wiki/extra-rules.md) provided by `"com.typesafe" %% "abide-extra" % "0.1-SNAPSHOT"`
 
-3. [rules/akka](/wiki/akka-rules.md) provided by `"com.typesafe" % "abide-akka" % "0.1-SNAPSHOT"`
+3. [rules/akka](/wiki/akka-rules.md) provided by `"com.typesafe" %% "abide-akka" % "0.1-SNAPSHOT"`
 
 ## Extending Abide
 
