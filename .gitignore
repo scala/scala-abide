@@ -6,3 +6,8 @@ project/target
 target
 *.swp
 *.BAK
+.classpath
+.project
+*.prefs
+.cache
+.tmpBin/
