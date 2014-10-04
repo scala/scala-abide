@@ -12,7 +12,7 @@ class StupidRecursion(val context: Context) extends ScopingRule {
 
   case class Warning(tree: Tree) extends RuleWarning {
     val pos = tree.pos
-    val message = s"The value $tree is recursively used in it's directly defining scope"
+    val message = s"The value $tree is recursively used in its directly defining scope"
   }
 
   val step = optimize {
