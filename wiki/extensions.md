@@ -51,7 +51,7 @@ Any rule whose generator is transitively subsumed by another generator will be a
 
 In order to specify to the framework which generators are provided by a package, analyzer generator classes must be appended to the abide-plugin.xml descriptor in an `<analyzer class="some.analyzer.generator.Class" />` element.
 
-For a concrete example, see [NaiveTraversalAnalyzer](/abide/src/traversal/NaiveTraversalAnalyzer.scala) which is subsumed by [FusingTraversalAnalyzer](/abide/src/traversal/FusingTraversalAnalyzer.scala) for traversal rules.
+For a concrete example, see [NaiveTraversalAnalyzer](/abide/src/main/scala/scala/tools/abide/traversal/NaiveTraversalAnalyzer.scala) which is subsumed by [FusingTraversalAnalyzer](/abide/src/main/scala/scala/tools/abide/traversal/FusingTraversalAnalyzer.scala) for traversal rules.
 
 As of now, only the analyzer for unit-local, flow-agnostic rules has been written, but cross-unit and flow-sensitive
 backends should be added in the future (if deemed useful). However, many simple(r) rules do not actually need flow
