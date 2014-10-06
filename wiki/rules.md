@@ -55,9 +55,9 @@ Finally, the `name` value provides a human-readable interface to **abide** rules
 A [traversal rule](/wiki/traversal/traversal-rules.md) is used when verification can be performed by a single unstructured pass through the unit-local (typed) source AST. This is typically the case for context-independent rules where bad patterns can be identified without requiring any knowledge of surrounding code, but more subtle types of properties can also be verified without requiring multiple passes.
 
 Examples of such rules can be found at
-- [vars which are never assigned](/rules/samples/src/ValInsteadOfVar.scala)
-- [unused members / arguments / locals](/rules/samples/src/UnusedMember.scala)
-- [renaming parameters with defaults in override](/rules/samples/src/RenamedDefaultParameter.scala)
+- [vars which are never assigned](/rules/core/src/main/scala/com/typesafe/abide/core/ValInsteadOfVar.scala)
+- [unused members / arguments / locals](/rules/core/src/main/scala/com/typesafe/abide/core/UnusedMember.scala)
+- [renaming parameters with defaults in override](/rules/core/src/main/scala/com/typesafe/abide/core/RenamedDefaultParameter.scala)
 - ...
 
 ## Moar rulez!

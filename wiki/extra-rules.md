@@ -5,6 +5,6 @@ The rules found in this package form a complement to the [rules/core](/wiki/core
 ## Fixing the overriden method parameter names
 
 name : **fixed-name-overrides**  
-source : [FixedNameOverrides](/rules/extra/src/FixedNameOverrides.scala)
+source : [FixedNameOverrides](/rules/extra/src/main/scala/com/typesafe/abide/extra/FixedNameOverrides.scala)
 
 When overriding a method, it can be worthwhile to keep the argument names (and ordering) to make sure the source remains clear and easily readable when traversing a hierarchy. This rule will enforce such consistent naming and provide warnings when the names differ on method override.
