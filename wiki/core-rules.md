@@ -77,3 +77,27 @@ should be written as
   case Nil => 0
 }
 ```
+
+## Avoiding by-name right-associative operators
+
+name : **by-name-right-associative**  
+source : [ByNameRightAssociative](/rules/extra/src/main/scala/com/typesafe/abide/extra/ByNameRightAssociative.scala)
+
+By-name arguments given to right-associative operators (those ending in `_:`)
+will be evaluated before the call to the operator rather than at the argument's use in the operator's body.
+
+### Example
+
+```scala
+def foo(): Int = { println("foo"); 1 }
+
+class C {
+  def op_:(x: => Int) = println("bar")
+}
+
+foo() op_: (new C) // Prints "foo" then "bar"
+
+(new C).op_:(foo()) // Prints just "bar"
+```
+
+The user most likely expects that in both cases only "bar" will be printed.
