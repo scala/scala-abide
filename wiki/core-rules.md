@@ -77,3 +77,30 @@ should be written as
   case Nil => 0
 }
 ```
+
+## Comparing Equality versus Identity
+
+name : **comparing-equality-versus-identity**  
+source : [ComparingEqualityVersusIdentity](/rules/core/src/main/scala/com/typesafe/abide/core/ComparingEqualityVersusIdentity.scala)
+
+Calling `equals` or `==` only makes sense if a custom implementation of `equals` is provided. Otherwise, we are effectively comparing identities, and hence `eq` (or `neq`) should be preferred, as it reveals the intention.
+
+
+For example, given the following definition
+```scala
+class User(first: String, last: String)
+
+val mark = new User(“Mark”, “Brown”)
+val mark2 = new User(“Mark”, “Brown”)
+```
+this snippet
+```scala
+if(mark1 == mark2) println(“Same user”)
+```
+should be written as
+```scala
+if(mark1 eq mark2) println(“Same user”)
+```
+
+because class `User` does not provide a custom implementation of `equals`.
+
