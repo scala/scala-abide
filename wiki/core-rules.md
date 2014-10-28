@@ -81,7 +81,7 @@ should be written as
 ## Avoiding by-name right-associative operators
 
 name : **by-name-right-associative**  
-source : [ByNameRightAssociative](/rules/extra/src/main/scala/com/typesafe/abide/extra/ByNameRightAssociative.scala)
+source : [ByNameRightAssociative](/rules/core/src/main/scala/com/typesafe/abide/core/ByNameRightAssociative.scala)
 
 By-name arguments given to right-associative operators (those ending in `_:`)
 will be evaluated before the call to the operator rather than at the argument's use in the operator's body.
@@ -105,7 +105,14 @@ The user most likely expects that in both cases only "bar" will be printed.
 ## Avoiding class or object declarations inside package objects
 
 name : **package-object-classes**  
-source : [PackageObjectClasses](/rules/extra/src/main/scala/com/typesafe/abide/extra/PackageObjectClasses.scala)
+source : [PackageObjectClasses](/rules/core/src/main/scala/com/typesafe/abide/core/PackageObjectClasses.scala)
 
 It is not recommended to define classes or objects inside of package objects,
 as they do not always work as expected.  See [SI-4344](https://issues.scala-lang.org/browse/SI-4344) for more details.
+
+## Avoiding nullary methods with `Unit` as their return type
+
+name : **nullary-unit**  
+source : [NullaryUnit](/rules/core/src/main/scala/com/typesafe/abide/core/NullaryUnit.scala)
+
+It is not recommended to define methods with side-effects which take no arguments, as it is easy to accidentally invoke those side-effects.
