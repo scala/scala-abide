@@ -8,6 +8,10 @@ optimization away from the rule writter.
 
 **Abide** is only available for sbt (and command line) for now, but will be ported to a Scala-IDE plugin and possibly to maven/gradle/etc as well. To add **abide** verification to an sbt project, three different options are available :
 
+### Important!
+
+At this moment, **abide** has not been released. You need to run `sbt publish-local` in a local checkout of the abide repository.
+
 ### Sbt Plugin
 
 Activate the sbt-abide plugin in both scala 2.10 and 2.11 projects by extending your `project/plugin.sbt` file with
@@ -20,8 +24,6 @@ addSbtPlugin("com.typesafe" % "sbt-abide" % "0.1-SNAPSHOT")
 ```
 sbt.version=0.13.5
 ```
-
-> At this moment, **abide** has not been released. You need to run `sbt publish-local` in a local checkout of the abide repository.
 
 Now you need to choose the rule libraries by adding the required jars to your dependencies in your project definitions (eg. `build.sbt`). Notice the `abide` configuration at the end of the line.
 ```scala
