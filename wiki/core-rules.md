@@ -146,3 +146,19 @@ name : **nullary-unit**
 source : [NullaryUnit](/rules/core/src/main/scala/com/typesafe/abide/core/NullaryUnit.scala)
 
 It is not recommended to define methods with side-effects which take no arguments, as it is easy to accidentally invoke those side-effects.
+
+## Avoid overloaded polymorphic implicit methods
+
+name : **poly-implicit-overload**  
+source : [PolyImplicitOverload](/rules/core/src/main/scala/com/typesafe/abide/core/PolyImplicitOverload.scala)
+
+Overloaded polymorphic implicit methods are not visible as view bounds and should therefore be avoided.  For example, the following will not compile because no implicit view is available from `List[Int]` to `Map[Int, Int]`:
+
+```scala
+implicit def imp1[T](x: List[T]): Map[T, T] = Map()
+implicit def imp1[T](x: Set[T]): Map[T, T] = Map()
+
+def f[T <% Map[Int, Int]](x: T) = println("f")
+
+f[List[Int]](List(3)) // No implicit view available!
+```
