@@ -146,3 +146,11 @@ name : **nullary-unit**
 source : [NullaryUnit](/rules/core/src/main/scala/com/typesafe/abide/core/NullaryUnit.scala)
 
 It is not recommended to define methods with side-effects which take no arguments, as it is easy to accidentally invoke those side-effects.
+
+## Avoid selection of fields from subclasses of `DelayedInit`
+
+name : **delayed-init-select**  
+source : [DelayedInitSelect](/rules/core/src/main/scala/com/typesafe/abide/core/DelayedInitSelect.scala)
+
+Selecting a field from a subclass of `DelayedInit` such as `App` will yield
+`null` if the object is not initialised, which can be confusing.
