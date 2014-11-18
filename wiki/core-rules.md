@@ -77,3 +77,24 @@ should be written as
   case Nil => 0
 }
 ```
+
+## Passing a sequence to a repeated parameter
+
+name : **seq-in-repeated-parameter-position**  
+source : [SeqToRepeatedParameter](/rules/core/src/SeqToRepeatedParameter.scala)
+
+Most collections have an `apply` constructor with repeated parameters, allowing to enumerate the elements of the collection. When the user passes only one argument of a sequence type the result can be confusing. Instead of copying the given sequence, another collection of one element is return.
+
+### Example
+```scala
+val buf = ListBuffer(1, 2)
+Vector(buf) // Vector[ListBuffer[Int]], instead of Vector[Int]
+```
+
+Most likely the user would like this instead:
+```scala
+val buf = ListBuffer(1, 2)
+Vector(buf: _*) // a Vector[Int](1, 2)
+```
+
+This rule warns of all cases where a sequence type is passed instead of a repeated parameter argument, when the repeated parameter type is a type variable.
