@@ -124,3 +124,23 @@ name : **nullary-unit**
 source : [NullaryUnit](/rules/core/src/main/scala/com/typesafe/abide/core/NullaryUnit.scala)
 
 It is not recommended to define methods with side-effects which take no arguments, as it is easy to accidentally invoke those side-effects.
+
+## Usages of potentially inaccessible types
+
+name : **inaccessible**  
+source : [Inaccessible](/rules/core/src/main/scala/com/typesafe/abide/core/Inaccessible.scala)
+
+Referencing private types as part of a public interface can lead to methods
+being impossible to implement in certain cases. For example in the following
+piece of code, YourTrait cannot be extended outside of the `foo` package, even
+though it is publicly accessible.
+
+```scala
+package foo {
+  private[foo] trait PrivateType { }
+
+  trait YourTrait {
+    def implementMe(f: Int => (String, PrivateType)): Unit
+  }
+}
+```
