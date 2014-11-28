@@ -146,3 +146,26 @@ name : **nullary-unit**
 source : [NullaryUnit](/rules/core/src/main/scala/com/typesafe/abide/core/NullaryUnit.scala)
 
 It is not recommended to define methods with side-effects which take no arguments, as it is easy to accidentally invoke those side-effects.
+
+## Avoid shadowing mutable public fields with private fields
+
+name : **private-shadow**  
+source : [PrivateShadow](/rules/core/src/main/scala/com/typesafe/abide/core/PrivateShadow.scala)
+
+Default constructor arguments create private fields which will shadow parent fields with the same name. When the parent field is mutable this can cause unexpected behaviour:
+
+```scala
+class Counter(var x: Int) {
+  def increment() = { x = x + 1 }
+}
+class StringCounter(x: Int) extends Counter(x) {
+  override def toString() = x.toString()
+}
+
+val c = new StringCounter(0)
+c.toString() // => 0
+c.increment()
+c.toString() // => 0
+```
+
+In this example `c.toString()` will always print `0`, even after calling `c.increment`.
