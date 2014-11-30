@@ -146,3 +146,16 @@ name : **nullary-unit**
 source : [NullaryUnit](/rules/core/src/main/scala/com/typesafe/abide/core/NullaryUnit.scala)
 
 It is not recommended to define methods with side-effects which take no arguments, as it is easy to accidentally invoke those side-effects.
+
+## Warn when type parameters shadow existing types
+
+name : **type-parameter-shadow**  
+source : [TypeParameterShadow](/rules/core/src/main/scala/com/typesafe/abide/core/TypeParameterShadow.scala)
+
+Declaring a type parameter with the same name as an existing type, such as `Byte`, will result in that type being shadowed. This leads to confusing errors where the type `Byte` is not actually `scala.Byte`:
+
+```scala
+def fail[String](f: (String) => Unit) = f("")
+```
+
+The code above results in a type error because `String` is not `java.lang.String`.
