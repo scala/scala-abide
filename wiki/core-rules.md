@@ -101,3 +101,11 @@ foo() op_: (new C) // Prints "foo" then "bar"
 ```
 
 The user most likely expects that in both cases only "bar" will be printed.
+
+## Avoiding class or object declarations inside package objects
+
+name : **package-object-classes**  
+source : [PackageObjectClasses](/rules/extra/src/main/scala/com/typesafe/abide/extra/PackageObjectClasses.scala)
+
+It is not recommended to define classes or objects inside of package objects,
+as they do not always work as expected.  See [SI-4344](https://issues.scala-lang.org/browse/SI-4344) for more details.
