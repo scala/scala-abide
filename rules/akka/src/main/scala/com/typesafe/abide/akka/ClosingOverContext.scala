@@ -16,15 +16,15 @@ class ClosingOverContext(val context: Context) extends ScopingRule {
   type Owner = Symbol
 
   lazy val actorSym = rootMirror.getClassByName(TypeName("akka.actor.Actor"))
-  lazy val contextSym = actorSym.toType.members.find(_.name == TermName("context")).get
+  lazy val contextSym = actorSym.toType.members.find(_.name == TermName("context"))
 
   lazy val flowSym = rootMirror.getClassByName(TypeName("akka.stream.scaladsl.Flow"))
-  lazy val onCompleteSym = flowSym.toType.members.find(_.name == TermName("onComplete")).get
+  lazy val onCompleteSym = flowSym.toType.members.find(_.name == TermName("onComplete"))
 
   val step = optimize {
-    case tree @ q"$caller(..$mat)(..$cb)" if caller.symbol == onCompleteSym =>
+    case tree @ q"$caller(..$mat)(..$cb)" if onCompleteSym.map(caller.symbol.==).getOrElse(false) =>
       enter(caller.symbol)
-    case s: Select if s.symbol == contextSym && state.parent.isDefined =>
+    case s: Select if contextSym.map(s.symbol.==).getOrElse(false) && state.parent.isDefined =>
       nok(Warning(s))
   }
 }
