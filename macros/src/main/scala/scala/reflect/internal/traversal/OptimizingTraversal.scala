@@ -152,6 +152,12 @@ object OptimizingMacros {
       case Reference(tpe, "Apply") =>
         typeClasses(tpe, "Apply", "ApplyToImplicitArgs", "ApplyImplicitView", "pendingSuperCall$")
 
+      case Reference(tpe, "ClassDef") =>
+        typeClasses(tpe, "ClassDef")
+
+      case Reference(tpe, "ModuleDef") =>
+        typeClasses(tpe, "ModuleDef")
+
       case _ =>
         c.warning(tree.pos, "Unmanaged type: " + t + "\n" +
           "You can file this warning as a bug report at https://github.com/scala/scala-abide")
