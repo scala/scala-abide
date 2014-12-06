@@ -65,6 +65,8 @@ class MacroTest extends FlatSpec with Matchers with TreeProvider {
         case a : Assign =>
         case s : Select =>
         case ap : Apply =>
+        case cd : ClassDef =>
+        case md : ModuleDef =>
       }
     }
 
@@ -79,7 +81,9 @@ class MacroTest extends FlatSpec with Matchers with TreeProvider {
       classOf[traversal.universe.ApplyToImplicitArgs],
       classOf[traversal.universe.ApplyImplicitView],
       traversal.universe.pendingSuperCall.getClass,
-      traversal.universe.noSelfType.getClass
+      traversal.universe.noSelfType.getClass,
+      classOf[traversal.universe.ClassDef],
+      classOf[traversal.universe.ModuleDef]
     )
 
     validation should be (true)
@@ -389,6 +393,38 @@ class MacroTest extends FlatSpec with Matchers with TreeProvider {
       import universe._
       val step : PartialFunction[Tree,Unit] = {
         case tree : Apply => add(tree)
+      }
+    }
+
+    verifyMatching(optimized, normal)
+  }
+
+  it should "work for class definitions" in {
+    val optimized = new Extractor(global) {
+      import universe._
+      val step = optimize { case tree : ClassDef => add(tree) }
+    }
+
+    val normal = new Extractor(global) {
+      import universe._
+      val step : PartialFunction[Tree,Unit] = {
+        case tree : ClassDef => add(tree)
+      }
+    }
+
+    verifyMatching(optimized, normal)
+  }
+
+  it should "work for module definitions" in {
+    val optimized = new Extractor(global) {
+      import universe._
+      val step = optimize { case tree : ModuleDef => add(tree) }
+    }
+
+    val normal = new Extractor(global) {
+      import universe._
+      val step : PartialFunction[Tree,Unit] = {
+        case tree : ModuleDef => add(tree)
       }
     }
 

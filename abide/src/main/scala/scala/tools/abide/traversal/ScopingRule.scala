@@ -5,8 +5,9 @@ import scala.reflect.internal.traversal._
 /**
  * ScopingRule
  *
- * TraversalRule subtrait that provides helper methods to manage scoping during traversal. Then [[enter]] method
- * will push the current tree to the scope and register a leaver method that will pop it once we leave that tree.
+ * TraversalRule subtrait that provides helper methods to manage symbol scoping during traversal. The [[enterScope]] method
+ * will open a new scoping block and [[scope]] will push the current symbol to the scope generated in [[enterScope]].
+ * Once the traversal leaves the current scoping block, it is popped to ensure scoping equivalence with scala.
  *
  * As in [[WarningRule]], warnings are determined given local (and scoping) context in a single pass (no
  * validation/invalidation mechanism).
@@ -14,26 +15,25 @@ import scala.reflect.internal.traversal._
 trait ScopingRule extends TraversalRule with ScopingTraversal {
   import context.universe._
 
-  /** Scoping type (eg. method symbol, class symbol, etc.) */
-  type Owner
+  /** Type of elements we wish to add into scope (eg. method symbol, class symbol, etc.) */
+  type Element
 
-  def emptyState = State(Nil, Nil)
-  case class State(scope: List[Owner], warnings: List[Warning]) extends RuleState {
+  def emptyState = State(List(Nil), Nil)
+  case class State(scope: List[List[Element]], warnings: List[Warning]) extends RuleState {
+    def enterScope: State = State(Nil :: scope, warnings)
+    def scope(elem: Element): State = State((elem :: scope.head) :: scope.tail, warnings)
     def nok(warning: Warning): State = State(scope, warning :: warnings)
-    def enter(owner: Owner): State = State(owner :: scope, warnings)
-    def leave: State = State(scope.tail, warnings)
 
-    def childOf(matches: Owner => Boolean): Boolean = scope.nonEmpty && matches(scope.head)
-    def childOf(owner: Owner): Boolean = childOf(_ == owner)
+    private[ScopingRule] def leaveScope: State = State(scope.tail, warnings)
 
-    def in(matches: Owner => Boolean): Boolean = scope.exists(matches(_))
-
-    def parents(matches: Owner => Boolean): List[Owner] = scope.filter(matches(_))
-    def parent: Option[Owner] = scope.headOption
+    def lookup(matcher: Element => Boolean): Option[Element] = scope.flatMap(xs => xs find matcher).headOption
   }
 
-  /** Register owner as current scope (pushes it onto scoping stack) */
-  def enter(owner: Owner): Unit = { transform(_ enter owner, _.leave) }
+  /** Open new scoping context (typically will happen when encountering a Block tree */
+  def enterScope(): Unit = { transform(_.enterScope, _.leaveScope) }
+
+  /** Add an element to the current scope (will be popped when leaving scope opening point */
+  def scope(elem: Element): Unit = { transform(_ scope elem) }
 
   /** Reports a warning */
   def nok(warning: Warning): Unit = { transform(_ nok warning) }

@@ -12,7 +12,9 @@ In addition to being verifiable with a single pass, rules will typically share s
 
 2. [existential rules](/wiki/traversal/existential-rules.md) rely on more than local context and will need to collect information from different parts of a tree to verify a property. A recurring pattern uses validation / invalidation of certain _keys_ depending on local context and is provided by the `ExistentialRule` trait. In an `ExistentialRule`, once a key has been marked as valid, it will remain so for ever, whereas invalid keys can be validated (and will then remain valid). After a full pass through an AST, keys that remain invalid will generate warnings.
 
-3. [scoping rules](/wiki/traversal/scoping-rules.md) rely on scoping information (by mixing `ScopingTraversal` in) to verify program properties, a situation that will generally arise when verifying properties dealing with recursion or inner / outer relations. The `ScopingRule` interfaces provides helpers to manage and access scope during AST traversal to verify such properties.
+3. [path rules](/wiki/traversal/path-rules.md) rely on the hierarchical ordering of the traversal (by mixing `ScopingTraversal` in) to verify program properties. These rules can access state to verify whether a sequence of is-in relations are satisfied when visiting a given node and can use this information to generate warnings. This will typically be useful when verifying recursion or inner / outer relations. The `PathRule` trait provides helpers to manage and access the current "path" traversal has taken.
+
+4. [scoping rules](/wiki/traversal/scoping-rules.md) provides helper methods to maintain a scala-style scope on symbols. Such rules also rely on the `ScopingTraversal` for hierarchical information and provide support for creating new scopes and registering symbols to these. This base-type is especially useful when dealing with masking or symbol lookup based on their name.
 
 ## Adding new helper traits
 

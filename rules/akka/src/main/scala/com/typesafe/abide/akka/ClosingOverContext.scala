@@ -3,7 +3,7 @@ package com.typesafe.abide.akka
 import scala.tools.abide._
 import scala.tools.abide.traversal._
 
-class ClosingOverContext(val context: Context) extends ScopingRule {
+class ClosingOverContext(val context: Context) extends PathRule {
   import context.universe._
 
   val name = "closing-over-context"
@@ -13,7 +13,7 @@ class ClosingOverContext(val context: Context) extends ScopingRule {
     val message = s"Closing over Actor.context value in callback at $tree"
   }
 
-  type Owner = Symbol
+  type Element = Symbol
 
   lazy val actorSym = rootMirror.getClassByName(TypeName("akka.actor.Actor"))
   lazy val contextSym = actorSym.toType.members.find(_.name == TermName("context")).get
@@ -24,7 +24,7 @@ class ClosingOverContext(val context: Context) extends ScopingRule {
   val step = optimize {
     case tree @ q"$caller(..$mat)(..$cb)" if caller.symbol == onCompleteSym =>
       enter(caller.symbol)
-    case s: Select if s.symbol == contextSym && state.parent.isDefined =>
+    case s: Select if s.symbol == contextSym && state.last.isDefined =>
       nok(Warning(s))
   }
 }
