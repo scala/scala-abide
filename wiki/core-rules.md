@@ -86,6 +86,13 @@ source [EmptyOrNonEmptyUsingSize](/rules/core/src/main/scala/com/typesafe/abide/
 Comparing size to zero is bad because some subclasses of Traversable has got an expensive size/length calculation.
 isEmpty/nonEmpty are always O(1) so use that instead.
 
+## Not using equals on arrays
+
+name : **array-equals**
+source [ArrayEquals](/rules/core/src/main/scala/com/typesafe/abide/core/ArrayEquals.scala)
+
+Equals on arrays is not really an equality check and always returns false unless comparing the same instance with itself.
+
 ## Avoiding by-name right-associative operators
 
 name : **by-name-right-associative**
