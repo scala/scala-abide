@@ -1,47 +1,57 @@
 # Writing Scoping Rules
 
-Rules that need to track scoping information can take advantage of the `ScopingRule` base trait to do so. Much like for [warning rules](/wiki/traversal/warning-rules.md), scoping rules simply accumulate warnings by using a `nok` helper method. However, they also provide a scoping helper that enables simple scope accumulation:
+Rules that need to maintain scala-style scopes for symbols can use the `ScopingRule` trait to construct and
+access such scopes during verification. Such rules accumulate warnings by using the `nok(warning: Warning)`
+helper method and construct a scala symbol scope thanks to
 ```scala
-def enter(owner : Owner) : Unit
+def enterScope(): Unit
 ```
-will add `owner` to the scoping stack and the `state` provider can be queried to check whether we are currently in a particular owner with another helper:
+which will register a new scoping environment to the scoping stack, and
 ```scala
-def in(owner : Onwer) : Boolean
+def scope(elem: Element): Unit
 ```
+which adds `elem` to the current scope (the one at the top of the scoping stack). When the tree for which
+`enterScope()` was called is left by traversal, the current scoping environment is popped from the stack, thus
+enforcing a scala-equivalent scoping style.
 
-To illustrate `ScopingRule` usage, we will implement a recursive method definition checker that searches for weird definitions that point to themselves (see the full source at [StupidRecursion](/rules/core/src/main/scala/com/typesafe/abide/core/StupidRecursion.scala)).
+To access scope, we provide the helper function
+```scala
+def lookup(matcher: Element => Boolean): Option[Element]
+```
+that will traverse the scoping stack top-down and return the first element for which `matcher` is satisfied.
 
-We start by defining the rule class:
+In order to write a Scoping Rule, one must start by defining the rule class:
 ```scala
 import scala.tools.abide._
-import scala.tools.abide.traversal._
+import scala.tools.abie.traversal._
 
-class StupidRecursion(val context : Context) extends ScopingRule {
-  val name = "stupid-recursion"
+class MyScopingRule(val context: Context) extends ScopingRule {
+  val name = "my-scoping-rule"
 }
 ```
-and we provide the required `Warning` type:
+and we provide the required `Warning` class:
 ```scala
-case class Warning(tree : Tree) extends RuleWarning {
+case class Warning(tree: Tree) extends RuleWarning {
   val pos = tree.pos
-  val message = s"The value $tree is recursively used " +
-                 "in it's directly defining scope"
+  val message = "Houston, we have a problem in $tree"
 }
 ```
 
-To manage scoping, we want to register entry of any method definition in the `step` partial function. To implement this, we use the `enter` helper and apply it to any member `def` declaration discovered during AST traversal:
+We still need to define the `Element` type. Assuming we are interested in the scoping of value definitions,
+we want to add `ValDef` symbols to the scope and therefore
 ```scala
-case defDef @ q"def $name : $tpt = $body" => enter(defDef.symbol)
+type Element = Symbol
 ```
 
-Scope is automatically handled by the `ScopingRule` trait, and we can now query the internal traversal state with `state.in(sym)` to evaluate the current scoping state.
-
-Now that we have scope, we implement stupid recursion checking by simply verifying that definition access doesn't point to the current scope (`state in tree.symbol`):
+Finally, to manage scoping, we must register new scopes when these would appear in scala. Typically, this occurs on
+`Block` entry. This leads to the following step function:
 ```scala
-case id @ Ident(_) if id.symbol != null && (state in id.symbol) =>
-  nok(Warning(id))
-case s @ Select(_, _) if s.symbol != null && (state in s.symbol) =>
-  nok(Warning(s))
+val step = optimize {
+  case b: Block => enterScope()
+  case v: ValDef => scope(v.symbol)
+  // case ... => actually do some checking!!
+}
 ```
 
-And... we're done!
+And we have scala-style value definition scoping. Symbols can now be looked up by name, for example, by calling
+`state.lookup(_.name == "foo")` and masking will be automatically managed by the `ScopingRule` state.
