@@ -78,6 +78,14 @@ should be written as
 }
 ```
 
+## Not checking if Traversables are empty or non empty by comparing their size
+
+name : **empty-nonempty-using-size**
+source [EmptyOrNonEmptyUsingSize](/rules/core/src/main/scala/com/typesafe/abide/core/EmptyOrNonEmptyUsingSize.scala)
+
+Comparing size to zero is bad because some subclasses of Traversable has got an expensive size/length calculation.
+isEmpty/nonEmpty are always O(1) so use that instead.
+
 ## Avoiding by-name right-associative operators
 
 name : **by-name-right-associative**  
