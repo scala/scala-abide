@@ -109,3 +109,11 @@ source : [PackageObjectClasses](/rules/extra/src/main/scala/com/typesafe/abide/e
 
 It is not recommended to define classes or objects inside of package objects,
 as they do not always work as expected.  See [SI-4344](https://issues.scala-lang.org/browse/SI-4344) for more details.
+
+## Creating BigDecimal instances from float or double
+
+name : **big-decimal-with-floating-point-type**
+source : [BigDecimalCreatedWithFloatingPointType](/rules/core/src/main/scala/com/typesafe/abide/core/BigDecimalCreatedWithFloatingPointType)
+
+Since floating points types has got limited precision it is a good idea to use BigDecimal
+but if creating instances from BigDecimal you will already have lost that precision.
