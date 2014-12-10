@@ -109,3 +109,18 @@ source : [PackageObjectClasses](/rules/extra/src/main/scala/com/typesafe/abide/e
 
 It is not recommended to define classes or objects inside of package objects,
 as they do not always work as expected.  See [SI-4344](https://issues.scala-lang.org/browse/SI-4344) for more details.
+
+## Costly operations on `List`
+
+name : **linear-cost-operations-on-list**  
+source : [LinearOperationsOnList](/rules/core/src/main/scala/com/typesafe/abide/core/LinearOperationsOnList.scala)
+
+Scala `List` provide very efficient `head/`tail` decomposition, but are inefficient for some other common operation, such as computing the `length`, or accessing a random element. If one needs to use these less efficient operations, then using a `Vector` instead of a `List` may yield better performances, because `Vector` operations takes effectively constant-time.
+
+```scala
+def take[T](xs: List[T], index: Int): T = xs(index)  
+```
+should be written as
+```scala
+def take[T](xs: Vector[T], index: Int): T = xs(index)
+```
