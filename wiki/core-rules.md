@@ -109,3 +109,13 @@ source : [PackageObjectClasses](/rules/extra/src/main/scala/com/typesafe/abide/e
 
 It is not recommended to define classes or objects inside of package objects,
 as they do not always work as expected.  See [SI-4344](https://issues.scala-lang.org/browse/SI-4344) for more details.
+
+## Comparing different types with equals
+
+name : **equals-with-different-types**
+source : [EqualsWithDifferentTypes](/rules/core/src/main/scala/com/typesafe/abide/core/EqualsWithDifferentTypes.scala)
+
+The contract of equals on the JVM states that objects who are not of the same type (class) may never be equal,
+still the signature of equals takes an object so it is possible to do equals comparisons that will never be true
+by calling it with an object of a different type.
+
