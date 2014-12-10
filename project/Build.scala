@@ -9,7 +9,7 @@ object AbideBuild extends Build {
   )
 
   lazy val sharedSettings = Formatting.sbtFilesSettings ++ abideSettings ++ Seq(
-    scalaVersion                  := "2.11.2",
+    scalaVersion                  := "2.11.4",
     scalacOptions                ++= Seq("-Xfuture", "-deprecation", "-feature" /*, "-Xfatal-warnings"*/),
     testOptions       in Test     += Tests.Argument("-oF"),
     libraryDependencies          <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _ % "provided"),

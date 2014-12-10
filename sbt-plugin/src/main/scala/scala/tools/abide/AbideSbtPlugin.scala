@@ -53,6 +53,7 @@ object AbideSbtPlugin extends AutoPlugin {
 
       if (sourcePaths.filter(_.endsWith(".scala")).nonEmpty) {
         val abideCp: Seq[java.io.File] = update.value.select(configurationFilter("abide"))
+        streams.value.log.debug("AbideCp: " + abideCp.mkString("\n"))
 
         val (ruleClasses, analyzerClasses) = {
           var rules: Seq[String] = Seq.empty
@@ -79,12 +80,21 @@ object AbideSbtPlugin extends AutoPlugin {
 
         val options = cpOpts ++ ruleOpts ++ analyzerOpts ++ compatibilityOpts ++ sourcePaths
 
+        streams.value.log.debug(options.mkString("\n"))
+
         val loader: ClassLoader = sbt.classpath.ClasspathUtilities.toLoader(abideCp)
 
         val mirror = ru.runtimeMirror(loader)
         val objectSymbol = mirror.staticModule("scala.tools.abide.Abide")
         val abideObj = mirror.reflectModule(objectSymbol).instance.asInstanceOf[{ def main(args: Array[String]): Unit }]
-        abideObj.main(options.toArray)
+
+        val nRules = ruleClasses.size
+
+        if (nRules > 0) {
+          streams.value.log.info(s"Checking $nRules abide rules")
+          abideObj.main(options.toArray)
+        } else
+          streams.value.log.info(s"No abide rules found. Maybe you forgot to add dependencies on rule packages?")
       }
       else {
         streams.value.log.info("No scala sources : skipping project.")
