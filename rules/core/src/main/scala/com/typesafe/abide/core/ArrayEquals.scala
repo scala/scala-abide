@@ -9,13 +9,13 @@ class ArrayEquals(val context: Context) extends WarningRule {
 
   val name = "array-equals"
 
-  case class Warning(appl: Apply) extends RuleWarning {
+  case class Warning(appl: Tree) extends RuleWarning {
     val pos = appl.pos
     val message = "equals for Arrays is not a deep equals and will always return false"
   }
 
   val step = optimize {
-    case appl @ Apply(Select(lhs, TermName("$eq$eq")), List(rhs)) if isArray(lhs) && isArray(rhs) =>
+    case appl @ q"$lhs == $rhs" if isArray(lhs) && isArray(rhs) =>
       nok(Warning(appl))
 
   }
