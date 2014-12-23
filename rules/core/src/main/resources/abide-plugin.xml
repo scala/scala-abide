@@ -8,4 +8,5 @@
   <rule class="com.typesafe.abide.core.UnusedMember" />
   <rule class="com.typesafe.abide.core.ByNameRightAssociative" />
   <rule class="com.typesafe.abide.core.PackageObjectClasses" />
+  <rule class="com.typesafe.abide.core.NullaryUnit" />
 </plugin>
