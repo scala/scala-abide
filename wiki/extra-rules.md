@@ -8,3 +8,10 @@ name : **fixed-name-overrides**
 source : [FixedNameOverrides](/rules/extra/src/main/scala/com/typesafe/abide/extra/FixedNameOverrides.scala)
 
 When overriding a method, it can be worthwhile to keep the argument names (and ordering) to make sure the source remains clear and easily readable when traversing a hierarchy. This rule will enforce such consistent naming and provide warnings when the names differ on method override.
+
+## Usage of isInstanceOf and asInstanceOf instead of pattern matching
+
+name : **instance-of-used**
+source : [InstancefOfUsed](/rules/extra/src/main/scala/com/typesafe/abide/extra/InstanceOfUsed.scala)
+
+It is safer and more idiomatic to use pattern matching than to use isInstanceOf and asInstanceOf on objects
