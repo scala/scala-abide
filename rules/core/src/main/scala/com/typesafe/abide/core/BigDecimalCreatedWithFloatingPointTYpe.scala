@@ -13,22 +13,28 @@ class BigDecimalCreatedWithFloatingPointType(val context: Context) extends Warni
     val message = "The results of using the BigDecimal constructor with floating point values is unpredictable"
   }
 
-  def isByName(param: Symbol) = param.tpe.typeSymbol == definitions.ByNameParamClass
+  private lazy val JavaBigDecimal: ClassSymbol = rootMirror.getClassByName(TypeName("java.math.BigDecimal"))
+  private lazy val ScalaBigDecimal: ClassSymbol = rootMirror.getClassByName(TypeName("scala.math.BigDecimal"))
 
   val step = optimize {
-    // BigDecimal(float|double)
-    case appl @ Apply(Select(who, t), List(what)) if isBigDecimal(who) && isFloatingPoint(what) =>
+
+    // new java.math.BigDecimal(float|double)
+    case appl @ q"new $who($what)" if isJavaBigDecimal(who.tpe) && (isFloat(what.tpe) || isDouble(what.tpe)) =>
       nok(Warning(appl))
 
-    // new BigDecimal(float|double)
-    case appl @ Apply(Select(New(who), nme.CONSTRUCTOR), List(what)) if isBigDecimal(who) && isFloatingPoint(what) =>
+    // new scala.BigDecimal(float)
+    case appl @ q"new $who($what)" if isScalaBigDecimal(who.tpe) && isFloat(what.tpe) =>
       nok(Warning(appl))
+
+    case appl @ q"scala.`package`.BigDecimal.apply($what)" if isFloat(what.tpe) =>
+      nok(Warning(appl))
+
   }
 
-  // checks if it is a scala big decima or a java big decimal
-  private def isBigDecimal(t: Tree): Boolean =
-    t.toString == "scala.`package`.BigDecimal" || t.toString == "java.math.BigDecimal"
+  private def isFloat(t: Type): Boolean = t <:< typeOf[Float]
+  private def isDouble(t: Type): Boolean = t <:< typeOf[Double]
 
-  private def isFloatingPoint(t: Tree): Boolean = t.tpe <:< typeOf[Float] || t.tpe <:< typeOf[Double]
+  private def isJavaBigDecimal(t: Type): Boolean = t.baseType(JavaBigDecimal) ne NoType
+  private def isScalaBigDecimal(t: Type): Boolean = t.baseType(ScalaBigDecimal) ne NoType
 
 }
