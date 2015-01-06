@@ -146,3 +146,10 @@ name : **nullary-unit**
 source : [NullaryUnit](/rules/core/src/main/scala/com/typesafe/abide/core/NullaryUnit.scala)
 
 It is not recommended to define methods with side-effects which take no arguments, as it is easy to accidentally invoke those side-effects.
+
+## Warn on strings which appear to be missing interpolators
+
+name : **missing-interpolator**  
+source : [MissingInterpolator](/rules/core/src/main/scala/com/typesafe/abide/core/MissingInterpolator.scala)
+
+It is easy to forget the interpolator symbol when writing string interpolations, so this rule will warn when it finds strings with no interpolators which appear to be destined for interpolation.
