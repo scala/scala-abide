@@ -146,3 +146,21 @@ name : **nullary-unit**
 source : [NullaryUnit](/rules/core/src/main/scala/com/typesafe/abide/core/NullaryUnit.scala)
 
 It is not recommended to define methods with side-effects which take no arguments, as it is easy to accidentally invoke those side-effects.
+
+## Avoiding overriding non-nullary methods with nullary methods
+
+name : **nullary-override**  
+source : [NullaryOverride](/rules/core/src/main/scala/com/typesafe/abide/core/NullaryOverride.scala)
+
+Providing a nullary override of a non-nullary method can lead to confusing
+errors and should be avoided. Consider for example:
+
+```scala
+trait T1 { def m() = 1 }
+trait T2 { def m = 2 }
+
+(new T1 {}).m() // => 1
+(new T1 with T2 {}).m() // does not compile
+```
+
+Mixing in an additional trait causes previously correct code not to compile.
