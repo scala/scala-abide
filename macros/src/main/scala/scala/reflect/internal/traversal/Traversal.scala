@@ -27,7 +27,18 @@ trait Traversal {
    * Must be a value member of the [[Traversal]] class since the optimizer macro
    * needs to inject class discoveries somewhere (ie. it adds members to PartialFunction subtype)
    */
-  val step: PartialFunction[Tree, Unit]
+  protected[traversal] val step: PartialFunction[Tree, Unit]
+
+  /**
+   * Step function wrapper that can provide extra flexibility to generic traversal.
+   *
+   * Since the [[step]] function will be defined by the end-user, there needs to be a place where
+   * extra computations or traversal logic can be injected into traversal base-types. This should
+   * be done by overriding [[computedStep]]. By default, simply returns [[step]].
+   *
+   * Note that [[computedStep]] MUST remain lazy since it depends on a value member of [[Traversal]].
+   */
+  protected[traversal] lazy val computedStep: PartialFunction[Tree, Unit] = step
 
   /** Errors discovered during traversal */
   case class TraversalError(pos: Position, cause: Throwable) extends RuntimeException(cause) {
@@ -46,8 +57,8 @@ trait Traversal {
    */
   private[traversal] def apply(tree: Tree): Boolean = {
     if (_error.isDefined) false else try {
-      if (!step.isDefinedAt(tree)) false else {
-        step.apply(tree)
+      if (!computedStep.isDefinedAt(tree)) false else {
+        computedStep.apply(tree)
         true
       }
     }

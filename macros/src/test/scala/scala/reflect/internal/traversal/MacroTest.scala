@@ -11,7 +11,7 @@ class MacroTest extends FlatSpec with Matchers with TreeProvider {
     type State = Null
     def emptyState = null
 
-    def classes : Option[Set[Class[_]]] = step match {
+    def classes : Option[Set[Class[_]]] = computedStep match {
       case c : ClassExtraction => c.classes
       case _ => None
     }
