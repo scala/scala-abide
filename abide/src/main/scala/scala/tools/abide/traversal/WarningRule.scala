@@ -22,7 +22,4 @@ trait WarningRule extends TraversalRule with IncrementalWarnings {
     /** required by [[IncrementalState]] */
     def nok(warning: Warning): State = State(warning :: warnings)
   }
-
-  /** Reports a warning */
-  def nok(warning: Warning): Unit = { transform(_ nok warning) }
 }

@@ -14,6 +14,11 @@ In addition to being verifiable with a single pass, rules will typically share s
 
 3. [scoping rules](/wiki/traversal/scoping-rules.md) rely on scoping information (by mixing `ScopingTraversal` in) to verify program properties, a situation that will generally arise when verifying properties dealing with recursion or inner / outer relations. The `ScopingRule` interfaces provides helpers to manage and access scope during AST traversal to verify such properties.
 
+Also, many rules share the same basic warning structure of a message linked to a particular tree. In that case, one can mix the `SimpleWarnings` trait into the rule definition and simplify warning definition to filling out the `warning` value member of the rule with a function from `Tree` to `String`. Furthermore, a string interpolator `w` is provided as well that enables reference to the tree we are warning against in the message as well as even simpler definitions:
+```scala
+val warning = w"The code in $tree is bad!"
+```
+
 ## Adding new helper traits
 
 Many traversal rules can be implemented by using the previous helper base-traits, but some may require a slightly different state representation, or different helpers. Here are a few considerations to keep in mind when writing new traversal base-traits.

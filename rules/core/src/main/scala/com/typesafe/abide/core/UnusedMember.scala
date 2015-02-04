@@ -3,15 +3,12 @@ package com.typesafe.abide.core
 import scala.tools.abide._
 import scala.tools.abide.traversal._
 
-class UnusedMember(val context: Context) extends ExistentialRule {
+class UnusedMember(val context: Context) extends ExistentialRule with SimpleWarnings {
   import context.universe._
 
   type Key = Symbol
 
-  case class Warning(tree: Tree) extends RuleWarning {
-    val pos = tree.pos
-    val message = s"${tree.symbol} is not used."
-  }
+  val warning = w"${tree.symbol} is not used."
 
   private def shouldConsider(sym: Symbol): Boolean = {
     val owner = sym.owner
@@ -42,16 +39,16 @@ class UnusedMember(val context: Context) extends ExistentialRule {
 
   val step = optimize {
     case vd: ValDef if shouldConsider(vd.symbol) =>
-      nok(vd.symbol, Warning(vd))
+      nok(vd.symbol, vd)
 
     case dd: DefDef if shouldConsider(dd.symbol) =>
-      nok(dd.symbol, Warning(dd))
+      nok(dd.symbol, dd)
 
     case tree @ q"$pre.$name" =>
       ok(tree.symbol)
 
     case b: Bind =>
-      nok(b.symbol, Warning(b))
+      nok(b.symbol, b)
 
     case tree @ Ident(_) =>
       val affectedSymbols =

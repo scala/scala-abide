@@ -7,7 +7,7 @@ import scala.tools.abide.traversal._
 /**
  * IncrementalWarnings
  *
- * Base trait provides an extension to [[RuleState]] which requires a transformation
+ * Base trait that provides an extension to [[RuleState]] which requires a transformation
  * that adds a new warning to the accumulated set:
  * ```scala
  * def nok(warning: Warning): State
@@ -35,6 +35,74 @@ trait IncrementalWarnings extends TraversalRule {
    * @see [[IncrementalState]]
    */
   type State <: IncrementalState
+
+  /** Register a warning */
+  def nok(warning: Warning): Unit = { transform(_ nok warning) }
+
+  /**
+   * If we've extended [[SimpleWarnings]], we can register warnings directly from
+   * the tree that's causing the issue.
+   *
+   * XXX: better way of doing this?
+   */
+  def nok(tree: Tree)(implicit ev: this.type <:< SimpleWarnings): Unit = {
+    val simpleWarnings = this.asInstanceOf[SimpleWarnings { val context: IncrementalWarnings.this.context.type }]
+    val warning: Warning = simpleWarnings.mkWarning(tree).asInstanceOf[Warning]
+    nok(warning)
+  }
+}
+
+/**
+ * KeyedWarnings
+ *
+ * Base trait that provides an extension to [[RuleState]] which requires a transformation
+ * that adds a new keyed warning to the accumulated set.
+ * ```scala
+ * def nok(key: Key, warning: Warning): State
+ * ```
+ * This is typically used in rules where local information is not enough to generate
+ * warnings, eg. [[ExistentialRule]].
+ *
+ * We also refine the [[State]] type member to require a [[KeyedState]] to
+ * guarantee all subtypes rules can register warnings with the `nok` transformer.
+ */
+trait KeyedWarnings extends TraversalRule {
+  import context.universe._
+
+  /** Key information associated to a warning, used to validate/invalidate warnings */
+  type Key
+
+  /**
+   * KeyedState
+   *
+   * An extension of [[RuleState]] that makes sure keyed warnings can be added to the state.
+   */
+  trait KeyedState extends RuleState {
+    def nok(key: Key, warning: Warning): State
+  }
+
+  /**
+   * The state type we'll be dealing with in subtype rules, required to be a subtype
+   * of the [[KeyedState]] trait.
+   *
+   * @see [[KeyedState]]
+   */
+  type State <: KeyedState
+
+  /** Register a keyed warning */
+  def nok(key: Key, warning: Warning): Unit = { transform(_ nok (key, warning)) }
+
+  /**
+   * If we've extended [[SimpleWarnings]], we can register warnings directly from
+   * the tree that's causing the issue.
+   *
+   * XXX: better way of doing this?
+   */
+  def nok(key: Key, tree: Tree)(implicit ev: this.type <:< SimpleWarnings): Unit = {
+    val simpleWarnings = this.asInstanceOf[SimpleWarnings { val context: KeyedWarnings.this.context.type }]
+    val warning: Warning = simpleWarnings.mkWarning(tree).asInstanceOf[Warning]
+    nok(key, warning)
+  }
 }
 
 /**
@@ -58,7 +126,7 @@ trait IncrementalWarnings extends TraversalRule {
  * The [[warning]] definition type is a function of `Tree => String` so other
  * warning definitions than string interpolations are also possible.
  */
-trait SimpleWarnings extends IncrementalWarnings with WarningExtractor {
+trait SimpleWarnings extends TraversalRule with WarningExtractor {
   import context.universe._
 
   /** provide the Warning type member of [[scala.tools.abide.Rule]] */
@@ -87,8 +155,8 @@ trait SimpleWarnings extends IncrementalWarnings with WarningExtractor {
   val warning: Tree => String
 
   /**
-   * A helper function that lets users register warnings given their tree
-   * The [[warning]] function is used to transform the tree into a valid message.
+   * Create warnings based on message creation function
+   * This function gets called in IncrementalWarnings and KeyedWarnings.
    */
-  def nok(tree: Tree): Unit = { transform(_ nok (new Warning(tree, warning(tree)))) }
+  private[traversal] def mkWarning(tree: Tree): Warning = new Warning(tree, warning(tree))
 }
