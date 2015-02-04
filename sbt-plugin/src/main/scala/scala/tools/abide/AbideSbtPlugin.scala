@@ -93,7 +93,8 @@ object AbideSbtPlugin extends AutoPlugin {
         if (nRules > 0) {
           streams.value.log.info(s"Checking $nRules abide rules")
           abideObj.main(options.toArray)
-        } else
+        }
+        else
           streams.value.log.info(s"No abide rules found. Maybe you forgot to add dependencies on rule packages?")
       }
       else {

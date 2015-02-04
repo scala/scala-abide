@@ -10,17 +10,19 @@ import scala.reflect.internal.traversal._
  * certain path is indeed contained in the path state.
  *
  * As in [[WarningRule]] and [[ScopingRule]], warnings are determined given local context and are simply
- * collected with the [[nok]] method.
+ * collected, so we use the [[IncrementalWarnings]] mixin trait to enable [[SimpleWarnings]] in these rules.
  */
-trait PathRule extends TraversalRule with ScopingTraversal {
+trait PathRule extends TraversalRule with ScopingTraversal with IncrementalWarnings {
   import context.universe._
 
   /** Path type that will be accumulated in the path stack */
   type Element
 
   def emptyState = State(Nil, Nil)
-  case class State(path: List[Element], warnings: List[Warning]) extends RuleState {
+  case class State(path: List[Element], warnings: List[Warning]) extends IncrementalState {
+    /** required by [[IncrementalState]] */
     def nok(warning: Warning): State = State(path, warning :: warnings)
+
     def enter(element: Element): State = State(element :: path, warnings)
     def leave: State = State(path.tail, warnings)
 
@@ -45,6 +47,6 @@ trait PathRule extends TraversalRule with ScopingTraversal {
   /** Register element as latest path element traversed (pushes onto path stack) */
   def enter(element: Element): Unit = { transform(_ enter element, _.leave) }
 
-  /** Report a warning */
+  /** Reports a warning */
   def nok(warning: Warning): Unit = { transform(_ nok warning) }
 }

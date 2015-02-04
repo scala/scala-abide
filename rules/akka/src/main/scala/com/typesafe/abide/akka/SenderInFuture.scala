@@ -3,15 +3,10 @@ package com.typesafe.abide.akka
 import scala.tools.abide._
 import scala.tools.abide.traversal._
 
-class SenderInFuture(val context: Context) extends PathRule {
+class SenderInFuture(val context: Context) extends PathRule with SimpleWarnings {
   import context.universe._
 
-  val name = "sender-in-future"
-
-  case class Warning(tree: Tree) extends RuleWarning {
-    val pos = tree.pos
-    val message = s"sender() is not stable and should not be accessed in non-thread-safe environments"
-  }
+  val warning = w"sender() is not stable and should not be accessed in non-thread-safe environments"
 
   sealed abstract class Element
   case class Receive(sym: Symbol) extends Element
@@ -36,7 +31,7 @@ class SenderInFuture(val context: Context) extends PathRule {
     }
     case tree @ Apply(sender @ Select(actor, TermName("sender")), _) if sender.symbol == senderSym =>
       if (state matches (Receive(actor.symbol), Future)) {
-        nok(Warning(tree))
+        nok(tree)
       }
   }
 }

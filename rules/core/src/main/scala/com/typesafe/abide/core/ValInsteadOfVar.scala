@@ -10,8 +10,6 @@ trait ValInsteadOfVar extends ExistentialRule {
 class LocalValInsteadOfVar(val context: Context) extends ValInsteadOfVar {
   import context.universe._
 
-  val name = "local-val-instead-of-var"
-
   case class Warning(tree: Tree) extends RuleWarning {
     val pos = tree.pos
     val message = s"The `var` $tree was never assigned locally and should therefore be declared as a `val`"
@@ -27,8 +25,6 @@ class LocalValInsteadOfVar(val context: Context) extends ValInsteadOfVar {
 
 class MemberValInsteadOfVar(val context: Context) extends ValInsteadOfVar {
   import context.universe._
-
-  val name = "member-val-instead-of-var"
 
   case class Warning(tree: Tree) extends RuleWarning {
     val pos = tree.pos

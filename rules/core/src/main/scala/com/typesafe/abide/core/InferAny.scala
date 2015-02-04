@@ -6,8 +6,6 @@ import scala.tools.abide.traversal._
 class InferAny(val context: Context) extends PathRule {
   import context.universe._
 
-  val name = "infer-any"
-
   case class Warning(app: Tree, tpt: Tree) extends RuleWarning {
     val pos = app.pos
     val message = s"A type was inferred to be `${tpt.tpe.typeSymbol.name}`. This may indicate a programming error."

@@ -3,15 +3,10 @@ package com.typesafe.abide.core
 import scala.tools.abide._
 import scala.tools.abide.traversal._
 
-class RenamedDefaultParameter(val context: Context) extends WarningRule {
+class RenamedDefaultParameter(val context: Context) extends WarningRule with SimpleWarnings {
   import context.universe._
 
-  val name = "renamed-default-parameter"
-
-  case class Warning(tree: Tree) extends RuleWarning {
-    val pos = tree.pos
-    val message = "Renaming parameters with default values can lead to unexpected behavior"
-  }
+  val warning = w"Renaming parameters with default values can lead to unexpected behavior"
 
   val step = optimize {
     case defDef: DefDef =>
@@ -20,7 +15,7 @@ class RenamedDefaultParameter(val context: Context) extends WarningRule {
         (defDef.vparamss.flatten zip overriden.asMethod.paramLists.flatten).foreach {
           case (vd, o) =>
             if (vd.symbol.isParamWithDefault && vd.symbol.name != o.name && names(vd.symbol.name)) {
-              nok(Warning(vd))
+              nok(vd)
             }
         }
       }

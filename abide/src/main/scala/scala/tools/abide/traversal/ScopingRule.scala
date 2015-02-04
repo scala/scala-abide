@@ -9,17 +9,20 @@ import scala.reflect.internal.traversal._
  * will push the current tree to the scope and register a leaver method that will pop it once we leave that tree.
  *
  * As in [[WarningRule]], warnings are determined given local (and scoping) context in a single pass (no
- * validation/invalidation mechanism).
+ * validation/invalidation mechanism), so we mix the [[IncrementalWarnings]] trait in to provide [[SimpleWarnings]]
+ * to rule writers.
  */
-trait ScopingRule extends TraversalRule with ScopingTraversal {
+trait ScopingRule extends TraversalRule with ScopingTraversal with IncrementalWarnings {
   import context.universe._
 
   /** Scoping type (eg. method symbol, class symbol, etc.) */
   type Owner
 
   def emptyState = State(Nil, Nil)
-  case class State(scope: List[Owner], warnings: List[Warning]) extends RuleState {
+  case class State(scope: List[Owner], warnings: List[Warning]) extends IncrementalState {
+    /** required by [[IncrementalState]] */
     def nok(warning: Warning): State = State(scope, warning :: warnings)
+
     def enter(owner: Owner): State = State(owner :: scope, warnings)
     def leave: State = State(scope.tail, warnings)
 

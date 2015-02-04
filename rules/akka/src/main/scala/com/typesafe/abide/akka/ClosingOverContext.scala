@@ -3,15 +3,10 @@ package com.typesafe.abide.akka
 import scala.tools.abide._
 import scala.tools.abide.traversal._
 
-class ClosingOverContext(val context: Context) extends ScopingRule {
+class ClosingOverContext(val context: Context) extends ScopingRule with SimpleWarnings {
   import context.universe._
 
-  val name = "closing-over-context"
-
-  case class Warning(tree: Tree) extends RuleWarning {
-    val pos = tree.pos
-    val message = s"Closing over Actor.context value in callback at $tree"
-  }
+  val warning = w"Closing over Actor.context value in callback at $tree"
 
   type Owner = Symbol
 
@@ -25,6 +20,6 @@ class ClosingOverContext(val context: Context) extends ScopingRule {
     case tree @ q"$caller(..$mat)(..$cb)" if onCompleteSym.map(caller.symbol.==).getOrElse(false) =>
       enter(caller.symbol)
     case s: Select if contextSym.map(s.symbol.==).getOrElse(false) && state.parent.isDefined =>
-      nok(Warning(s))
+      nok(s)
   }
 }

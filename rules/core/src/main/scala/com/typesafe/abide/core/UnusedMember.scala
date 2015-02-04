@@ -6,7 +6,6 @@ import scala.tools.abide.traversal._
 class UnusedMember(val context: Context) extends ExistentialRule {
   import context.universe._
 
-  val name = "unused-member"
   type Key = Symbol
 
   case class Warning(tree: Tree) extends RuleWarning {
