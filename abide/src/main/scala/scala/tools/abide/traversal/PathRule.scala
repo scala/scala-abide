@@ -12,18 +12,29 @@ import scala.reflect.internal.traversal._
  * As in [[WarningRule]] and [[ScopingRule]], warnings are determined given local context and are simply
  * collected with the [[nok]] method.
  */
-trait PathRule extends TraversalRule with ScopingTraversal {
+trait PathRule extends PathRuleTraversal with WarningRuleTraversal {
+  import context.universe._
+
+  def emptyState = State(Nil, Nil)
+  case class State(path: List[Element], warnings: List[Warning]) extends PathState with WarningState {
+    def withPath(newPath: List[Element]): State = State(newPath, warnings)
+    def nok(warning: Warning): State = State(path, warning :: warnings)
+  }
+}
+
+trait PathRuleTraversal extends TraversalRule with ScopingTraversal {
   import context.universe._
 
   /** Path type that will be accumulated in the path stack */
   type Element
 
-  def emptyState = State(Nil, Nil)
-  case class State(path: List[Element], warnings: List[Warning]) extends RuleState {
-    def nok(warning: Warning): State = State(path, warning :: warnings)
-    def enter(element: Element): State = State(element :: path, warnings)
+  type State <: PathState
+  trait PathState extends RuleState {
+    val path: List[Element]
+    def withPath(path: List[Element]): State
 
-    private[PathRule] def leave: State = State(path.tail, warnings)
+    def enter(element: Element): State = withPath(element :: path)
+    private[PathRuleTraversal] def leave: State = withPath(path.tail)
 
     /** Provides access to the last element that was registered in the path */
     def last: Option[Element] = path.headOption
@@ -45,7 +56,4 @@ trait PathRule extends TraversalRule with ScopingTraversal {
 
   /** Register element as latest path element traversed (pushes onto path stack) */
   def enter(element: Element): Unit = { transform(_ enter element, _.leave) }
-
-  /** Report a warning */
-  def nok(warning: Warning): Unit = { transform(_ nok warning) }
 }
