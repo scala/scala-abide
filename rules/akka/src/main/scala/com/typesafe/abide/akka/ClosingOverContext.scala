@@ -24,7 +24,7 @@ class ClosingOverContext(val context: Context) extends PathRule {
   val step = optimize {
     case tree @ q"$caller(..$mat)(..$cb)" if onCompleteSym.map(caller.symbol.==).getOrElse(false) =>
       enter(caller.symbol)
-    case s: Select if s.symbol == contextSym && state.last.isDefined =>
+    case s: Select if contextSym.map(s.symbol.==).getOrElse(false) && state.last.isDefined =>
       nok(Warning(s))
   }
 }

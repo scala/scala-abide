@@ -7,12 +7,11 @@ import scala.annotation.tailrec
 /**
  * ScopingRule
  *
- * TraversalRule subtrait that provides helper methods to manage symbol scoping during traversal. The [[enterScope]] method
- * will open a new scoping block and [[scope]] will push the current symbol to the scope generated in [[enterScope]].
- * Once the traversal leaves the current scoping block, it is popped to ensure scoping equivalence with scala.
+ * TraversalRule subtrait that provides scoping from [[ScopingRuleTraversal]] with simple warning accumulation
+ * from [[WarningRuleTraversal]], meaning warnings are accumulated given scoping information and local context.
  *
- * As in [[WarningRule]], warnings are determined given local (and scoping) context in a single pass (no
- * validation/invalidation mechanism).
+ * @see [[ScopingRuleTraversal]] for scala-style scoping aspects
+ * @see [[WarningRuleTraversal]] for warning accumulation
  */
 trait ScopingRule extends ScopingRuleTraversal with WarningRuleTraversal {
   import context.universe._
@@ -24,26 +23,53 @@ trait ScopingRule extends ScopingRuleTraversal with WarningRuleTraversal {
   }
 }
 
-trait PathScopingRule extends ScopingRuleTraversal with PathRuleTraversal with WarningRuleTraversal {
-  import context.universe._
-
-  def emptyState = State(NoContext, Nil, Nil)
-  case class State(context: Context, path: List[Element], warnings: List[Warning]) extends ScopingState with PathState with WarningState {
-    def withContext(newContext: Context): State = State(newContext, path, warnings)
-    def withPath(newPath: List[Element]): State = State(context, newPath, warnings)
-    def nok(warning: Warning): State = State(context, path, warning :: warnings)
-  }
-}
-
+/**
+ * ScopingRuleTraversal
+ *
+ * TraversalRule subtrait that provides scala-style symbol scoping and lets rule writers lookup symbols
+ * given names and filters. To ensure the scoping mechanism resembles the one implemented in the scala
+ * compiler, the scope building is handled automatically by the ScopingRuleTraversal trait.
+ *
+ * The trait provides a [[lookup]] method to find the first symbol in scope given `name` and `qualifies`
+ * filter function. Certain parts of scala scoping were ommited as not every tree is useful for scope
+ * lookup. The scoping context is complete for the following ASTs in scala.reflect.internal.Trees:
+ *  - Block
+ *  - ValDef
+ *  - DefDef
+ *  - TypeDef
+ *  - Import
+ *  - ClassDef
+ *  - ModuleDef
+ *  - PackageDef
+ *  - Template
+ *  - CaseDef
+ *  - Bind
+ *
+ *  @see [[Contexts]] for more explanations on where scoping comes from
+ */
 trait ScopingRuleTraversal extends TraversalRule with ScopingTraversal with Contexts {
   import context.universe._
 
+  /** Type-bound on the abstract `State` type to guarantee context handling */
   type State <: ScopingState
+
+  /**
+   * ScopingState
+   *
+   * RuleState subtype that adds context management to the rule state. Provides access to the scala-style
+   * [[context]] and a [[lookup]] method that searches context for a suitable match.
+   *
+   * We require a [[withContext]] method so that concrete `State` types can be extended with new context
+   * during traversal. This enables composable states to use different traversal styles together.
+   */
   trait ScopingState extends RuleState {
+    /** Current scoping context */
     val context: Context
+
+    /** Creates a new state with the given context */
     def withContext(context: Context): State
 
-    def enterValDef(vdef: ValDef): State = {
+    private[ScopingRuleTraversal] def enterValDef(vdef: ValDef): State = {
       val sym = vdef.symbol
       if (context.inBlock)
         context.scope enter sym
@@ -54,7 +80,7 @@ trait ScopingRuleTraversal extends TraversalRule with ScopingTraversal with Cont
       withContext(newContext)
     }
 
-    def enterDefDef(ddef: DefDef): State = {
+    private[ScopingRuleTraversal] def enterDefDef(ddef: DefDef): State = {
       val sym = ddef.symbol
       if (context.inBlock)
         context.scope enter sym
@@ -71,7 +97,7 @@ trait ScopingRuleTraversal extends TraversalRule with ScopingTraversal with Cont
       withContext(newContext)
     }
 
-    def enterTypeDef(tdef: TypeDef): State = {
+    private[ScopingRuleTraversal] def enterTypeDef(tdef: TypeDef): State = {
       val sym = tdef.symbol
       if (context.inBlock)
         context.scope enter sym
@@ -81,46 +107,54 @@ trait ScopingRuleTraversal extends TraversalRule with ScopingTraversal with Cont
       withContext(newContext)
     }
 
-    def enterFunction(fun: Function): State = {
+    private[ScopingRuleTraversal] def enterFunction(fun: Function): State = {
       val newContext = context.makeNewScope(fun, fun.symbol)
       for (vparam <- fun.vparams) newContext.scope enter vparam.symbol
       withContext(newContext)
     }
 
-    def enterClassDef(cd: ClassDef): State = {
+    private[ScopingRuleTraversal] def enterClassDef(cd: ClassDef): State = {
       val newContext = context.makeNewScope(cd, cd.symbol)
       for (tparam <- cd.tparams) newContext.scope enter tparam.symbol
       withContext(context.makeNewScope(cd, cd.symbol))
     }
 
-    def enterModuleDef(md: ModuleDef): State =
+    private[ScopingRuleTraversal] def enterModuleDef(md: ModuleDef): State =
       withContext(context.makeNewScope(md, md.symbol.moduleClass))
 
-    def enterTemplate(template: Template): State = {
+    private[ScopingRuleTraversal] def enterPackageDef(pd: PackageDef): State =
+      withContext(context.make(pd, pd.symbol.moduleClass, pd.symbol.info.decls))
+
+    private[ScopingRuleTraversal] def enterTemplate(template: Template): State = {
       val ctx = context.make(template, context.owner, newScope)
       if (template.self.name != nme.WILDCARD) ctx.scope enter template.self.symbol
       withContext(ctx)
     }
 
-    def enterBlock(block: Block): State =
+    private[ScopingRuleTraversal] def enterBlock(block: Block): State =
       withContext(context.makeNewScope(block, context.owner))
 
-    def enterImport(i: Import): State =
+    private[ScopingRuleTraversal] def enterImport(i: Import): State =
       withContext(context.make(i))
 
-    def enterCaseDef(cd: CaseDef): State =
+    private[ScopingRuleTraversal] def enterCaseDef(cd: CaseDef): State =
       withContext(context.makeNewScope(cd, context.owner))
 
-    def enterBind(b: Bind): State = {
+    private[ScopingRuleTraversal] def enterBind(b: Bind): State = {
       context.scope enter b.symbol
       withContext(context)
     }
 
+    private[ScopingRuleTraversal] def enterApply(a: Apply): State =
+      withContext(context.make(a))
+
     private[ScopingRuleTraversal] def leaveContext: State = withContext(context.parent)
 
+    /** Helper method to extract symbol from context given name and filter */
     def lookup(name: Name, qualifies: Symbol => Boolean): NameLookup = context.lookupSymbol(name, qualifies)
   }
 
+  /** Extension to the user-defined `step` partial function to automatically manage scope */
   override lazy val computedStep = {
     val scopingStep = optimize {
       case b: Block =>
@@ -144,6 +178,9 @@ trait ScopingRuleTraversal extends TraversalRule with ScopingTraversal with Cont
       case md: ModuleDef =>
         transform(_ enterModuleDef md, _.leaveContext)
 
+      case pd: PackageDef =>
+        transform(_ enterPackageDef pd, _.leaveContext)
+
       case t: Template =>
         transform(_ enterTemplate t, _.leaveContext)
 
@@ -156,13 +193,16 @@ trait ScopingRuleTraversal extends TraversalRule with ScopingTraversal with Cont
 
     step merge scopingStep
   }
-
-  def lookup(name: Name, qualifies: Symbol => Boolean): NameLookup = state.lookup(name, qualifies)
 }
 
-/* NSC -- new Scala compiler
- * Copyright 2005-2013 LAMP/EPFL
- * @author  Martin Odersky
+/**
+ * Contexts
+ *
+ * Mainly copied over from scala.tools.nsc.typechecker.Contexts to make sure context handling is as close as
+ * possible to the implementation in the compiler. The code was simplified to work in internal trees so
+ * some of the behavior might differ, but it should be a fairly faithful reflection.
+ *
+ * @see scala.tools.nsc.typechecker.Contexts
  */
 trait Contexts { self: ScopingRuleTraversal =>
   import context.universe._

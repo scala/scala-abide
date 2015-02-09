@@ -5,12 +5,12 @@ import scala.reflect.internal.traversal._
 /**
  * PathRule
  *
- * TraversalRule subtrait that provides helper methods to manage hierarchical path-dependent traversal.
- * The [[enter]] method will add elements to the path state, and [[State.matches]] verifies whether a
- * certain path is indeed contained in the path state.
+ * TraversalRule subtrait that provides hierarchical path management from [[PathRuleTraversal]] and
+ * simple warning accumulation from [[WarningRuleTraversal]]. One can build path information during
+ * traversal and use it in conjunction with local context to accumulate warnings.
  *
- * As in [[WarningRule]] and [[ScopingRule]], warnings are determined given local context and are simply
- * collected with the [[nok]] method.
+ * @see [[PathRuleTraversal]]
+ * @see [[WarningRuleTraversal]]
  */
 trait PathRule extends PathRuleTraversal with WarningRuleTraversal {
   import context.universe._
@@ -22,17 +22,35 @@ trait PathRule extends PathRuleTraversal with WarningRuleTraversal {
   }
 }
 
+/**
+ * PathRuleTraversal
+ *
+ * TraversalRule subtrait that provides helper methods to manage hierarchical path-dependent traversal.
+ * The [[enter]] method will add elements to the path state and [[State.matches]] verifies whether a
+ * certain path is indeed contained in the path state.
+ */
 trait PathRuleTraversal extends TraversalRule with ScopingTraversal {
   import context.universe._
 
   /** Path type that will be accumulated in the path stack */
   type Element
 
+  /** Type-bound on the abstract `State` type to guarantee path handling */
   type State <: PathState
+
+  /**
+   * PathState
+   *
+   * RuleState subtype that adds hierarchical path accumulation to the rule state. During a traversal,
+   * one can add `Element` members to the current path and traversal of children trees will contain these
+   * elements in the current state's path. One can check the path structure with the helper methods
+   * [[last]] and [[matches]].
+   */
   trait PathState extends RuleState {
     val path: List[Element]
     def withPath(path: List[Element]): State
 
+    /** Register element to path */
     def enter(element: Element): State = withPath(element :: path)
     private[PathRuleTraversal] def leave: State = withPath(path.tail)
 
