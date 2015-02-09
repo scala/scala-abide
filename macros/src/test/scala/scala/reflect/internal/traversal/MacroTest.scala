@@ -58,32 +58,44 @@ class MacroTest extends FlatSpec with Matchers with TreeProvider {
       import universe._
 
       val step = optimize {
-        case id : Ident =>
-        case vd : ValDef =>
-        case DefDef(_, _, _, _, _, _) =>
+        case b : Bind =>
         case m : Match =>
-        case a : Assign =>
+        case cd : CaseDef =>
+        case b : Block =>
+        case id : Ident =>
         case s : Select =>
+        case DefDef(_, _, _, _, _, _) =>
+        case vd : ValDef =>
+        case td : TypeDef =>
+        case a : Assign =>
         case ap : Apply =>
         case cd : ClassDef =>
         case md : ModuleDef =>
+        case pd : PackageDef =>
+        case t : Template =>
       }
     }
 
     val validation = traversal.validate(
-      classOf[traversal.universe.ValDef],
-      classOf[traversal.universe.DefDef],
-      classOf[traversal.universe.Select],
-      classOf[traversal.universe.Assign],
+      classOf[traversal.universe.Bind],
       classOf[traversal.universe.Match],
+      classOf[traversal.universe.CaseDef],
+      classOf[traversal.universe.Block],
       classOf[traversal.universe.Ident],
+      classOf[traversal.universe.Select],
+      classOf[traversal.universe.DefDef],
+      classOf[traversal.universe.ValDef],
+      classOf[traversal.universe.TypeDef],
+      classOf[traversal.universe.Assign],
       classOf[traversal.universe.Apply],
       classOf[traversal.universe.ApplyToImplicitArgs],
       classOf[traversal.universe.ApplyImplicitView],
       traversal.universe.pendingSuperCall.getClass,
       traversal.universe.noSelfType.getClass,
       classOf[traversal.universe.ClassDef],
-      classOf[traversal.universe.ModuleDef]
+      classOf[traversal.universe.ModuleDef],
+      classOf[traversal.universe.PackageDef],
+      classOf[traversal.universe.Template]
     )
 
     validation should be (true)
@@ -303,6 +315,34 @@ class MacroTest extends FlatSpec with Matchers with TreeProvider {
     verifyMatching(optimized, normal)
   }
 
+  it should "work for case defs" in {
+    val optimized = new Extractor(global) {
+      import universe._
+      val step = optimize { case tree : CaseDef => add(tree) }
+    }
+
+    val normal = new Extractor(global) {
+      import universe._
+      val step : PartialFunction[Tree,Unit] = { case tree : CaseDef => add(tree) }
+    }
+
+    verifyMatching(optimized, normal)
+  }
+
+  it should "work for blocks" in {
+    val optimized = new Extractor(global) {
+      import universe._
+      val step = optimize { case tree : Block => add(tree) }
+    }
+
+    val normal = new Extractor(global) {
+      import universe._
+      val step : PartialFunction[Tree,Unit] = { case tree : Block => add(tree) }
+    }
+
+    verifyMatching(optimized, normal)
+  }
+
   it should "work for idents" in {
     val optimized = new Extractor(global) {
       import universe._
@@ -362,6 +402,49 @@ class MacroTest extends FlatSpec with Matchers with TreeProvider {
       val step : PartialFunction[Tree,Unit] = {
         case tree : ValDef => add(tree)
       }
+    }
+
+    verifyMatching(optimized, normal)
+  }
+
+  it should "work for type defs" in {
+    val optimized = new Extractor(global) {
+      import universe._
+      val step = optimize { case tree : TypeDef => add(tree) }
+    }
+
+    val normal = new Extractor(global) {
+      import universe._
+      val step : PartialFunction[Tree,Unit] = { case tree : TypeDef => add(tree) }
+    }
+
+    verifyMatching(optimized, normal)
+
+    val tree = fromString("""
+      trait Toto {
+        type A
+      }
+      class Titi extends Toto {
+        type A = Int
+      }
+    """)
+
+    global.ask { () =>
+      optimized.traverse(tree)
+      normal.traverse(tree)
+      assert(optimized.result == normal.result)
+    }
+  }
+
+  it should "work for imports" in {
+    val optimized = new Extractor(global) {
+      import universe._
+      val step = optimize { case tree : Import => add(tree) }
+    }
+
+    val normal = new Extractor(global) {
+      import universe._
+      val step : PartialFunction[Tree,Unit] = { case tree : Import => add(tree) }
     }
 
     verifyMatching(optimized, normal)
@@ -431,4 +514,31 @@ class MacroTest extends FlatSpec with Matchers with TreeProvider {
     verifyMatching(optimized, normal)
   }
 
+  it should "work for package definitions" in {
+    val optimized = new Extractor(global) {
+      import universe._
+      val step = optimize { case tree : PackageDef => add(tree) }
+    }
+
+    val normal = new Extractor(global) {
+      import universe._
+      val step : PartialFunction[Tree,Unit] = { case tree : PackageDef => add(tree) }
+    }
+
+    verifyMatching(optimized, normal)
+  }
+
+  it should "work for templates" in {
+    val optimized = new Extractor(global) {
+      import universe._
+      val step = optimize { case tree : Template => add(tree) }
+    }
+
+    val normal = new Extractor(global) {
+      import universe._
+      val step : PartialFunction[Tree,Unit] = { case tree : Template => add(tree) }
+    }
+
+    verifyMatching(optimized, normal)
+  }
 }

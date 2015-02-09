@@ -135,6 +135,12 @@ object OptimizingMacros {
       case Reference(tpe, "Match") =>
         typeClasses(tpe, "Match")
 
+      case Reference(tpe, "CaseDef") =>
+        typeClasses(tpe, "CaseDef")
+
+      case Reference(tpe, "Block") =>
+        typeClasses(tpe, "Block")
+
       case Reference(tpe, "Ident") =>
         typeClasses(tpe, "Ident")
 
@@ -147,6 +153,12 @@ object OptimizingMacros {
       case Reference(tpe, "ValDef") =>
         typeClasses(tpe, "ValDef", "noSelfType$")
 
+      case Reference(tpe, "TypeDef") =>
+        typeClasses(tpe, "TypeDef")
+
+      case Reference(tpe, "Import") =>
+        typeClasses(tpe, "Import")
+
       case Reference(tpe, "Assign") =>
         typeClasses(tpe, "Assign")
 
@@ -158,6 +170,12 @@ object OptimizingMacros {
 
       case Reference(tpe, "ModuleDef") =>
         typeClasses(tpe, "ModuleDef")
+
+      case Reference(tpe, "PackageDef") =>
+        typeClasses(tpe, "PackageDef")
+
+      case Reference(tpe, "Template") =>
+        typeClasses(tpe, "Template")
 
       case _ =>
         c.warning(tree.pos, "Unmanaged type: " + t + "\n" +

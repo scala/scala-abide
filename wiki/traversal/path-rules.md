@@ -36,7 +36,7 @@ To manage the traversal path, we want to register entry of any method definition
 case defDef @ q"def $name : $tpt = $body" => enter(defDef.symbol)
 ```
 
-Traversal path is automatically handled by the `PathRule` trait, and we can now query the internal traversal state with `state.matches(sym)` to evaluate the current scoping state.
+Traversal path is automatically handled by the `PathRule` trait, and we can now query the internal traversal state with `state.matches(sym)` to evaluate the current path state.
 
 Now that we have traversal ordering, we implement stupid recursion checking by simply verifying that definition access doesn't point to the current scope (`state matches tree.symbol`):
 ```scala

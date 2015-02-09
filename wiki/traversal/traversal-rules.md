@@ -14,7 +14,7 @@ In addition to being verifiable with a single pass, rules will typically share s
 
 3. [path rules](/wiki/traversal/path-rules.md) rely on the hierarchical ordering of the traversal (by mixing `ScopingTraversal` in) to verify program properties. These rules can access state to verify whether a sequence of is-in relations are satisfied when visiting a given node and can use this information to generate warnings. This will typically be useful when verifying recursion or inner / outer relations. The `PathRule` trait provides helpers to manage and access the current "path" traversal has taken.
 
-4. [scoping rules](/wiki/traversal/scoping-rules.md) provides helper methods to maintain a scala-style scope on symbols. Such rules also rely on the `ScopingTraversal` for hierarchical information and provide support for creating new scopes and registering symbols to these. This base-type is especially useful when dealing with masking or symbol lookup based on their name.
+4. [scoping rules](/wiki/traversal/scoping-rules.md) provides helper methods to maintain a scala-style scope on symbols. Such rules also rely on the `ScopingTraversal` for hierarchical information and provide support for symbol lookup given a known symbol name. Scoping information itself is tracked behind the scenes by the rule.
 
 ## Adding new helper traits
 
