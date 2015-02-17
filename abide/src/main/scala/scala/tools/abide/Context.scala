@@ -1,5 +1,6 @@
 package scala.tools.abide
 
+import scala.tools.nsc.Global
 import scala.reflect.internal._
 
 /**
@@ -14,8 +15,8 @@ import scala.reflect.internal._
  * @see [[Context]]
  * @see com.typesafe.abide.sample.PublicMutable for a concrete example
  */
-trait ContextGenerator {
-  def getContext(universe: SymbolTable): Context
+trait ContextGenerator[+C <: Context] {
+  def getContext(universe: SymbolTable): C
 }
 
 /**
@@ -25,4 +26,3 @@ trait ContextGenerator {
  * in more detail in [[ContextGenerator]].
  */
 class Context(val universe: SymbolTable)
-

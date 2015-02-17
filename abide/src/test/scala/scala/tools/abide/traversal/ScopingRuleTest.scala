@@ -2,12 +2,14 @@ package scala.tools.abide.traversal
 
 import scala.tools.abide._
 import scala.tools.abide.traversal._
+import scala.tools.abide.directives._
 
 class ScopingRuleTest extends TraversalTest {
 
   object rule extends {
     val context: ScopingRuleTest.this.context.type = ScopingRuleTest.this.context
   } with ScopingRule {
+    import context._
     import context.universe._
 
     val name = "scoping-rule"
@@ -19,7 +21,9 @@ class ScopingRuleTest extends TraversalTest {
 
     val step = optimize {
       case vd: ValDef if vd.name.toString.trim == "bob" =>
-        nok(Warning(vd, state.lookup(TermName("titi"), _ => true).symbol))
+        val lookup = lookupContext(vd).lookupSymbol(TermName("titi"), _ => true)
+        //nok(Warning(vd, state.lookup(TermName("titi"), _ => true).symbol))
+        nok(Warning(vd, lookup.symbol))
     }
   }
 
@@ -102,7 +106,7 @@ class ScopingRuleTest extends TraversalTest {
     }
   }
 
-  it should "follow block scoping rules II" in {
+  it should "follow block scoping rules II (scoping makes forward reference)" in {
     val tree = fromString("""
       class Titi {
         val titi = 2
@@ -117,7 +121,7 @@ class ScopingRuleTest extends TraversalTest {
 
     global.ask { () =>
       val warnings = apply(rule)(tree)
-      assert(warnings.size == 1 && warnings.exists(w => w.sym.fullName == "Titi.titi" && w.sym.owner.isClass))
+      assert(warnings.size == 1 && warnings.exists(w => w.sym.fullName == "Titi.titi" && w.sym.owner.isMethod))
     }
   }
 

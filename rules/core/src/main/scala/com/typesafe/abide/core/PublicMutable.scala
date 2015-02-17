@@ -3,9 +3,10 @@ package com.typesafe.abide.core
 import scala.tools.abide._
 import scala.tools.abide.traversal._
 import scala.tools.abide.directives._
+
 import scala.reflect.internal._
 
-object PublicMutable extends ContextGenerator {
+object PublicMutable extends ContextGenerator[Context with MutabilityChecker] {
   def getContext(universe: SymbolTable) = new Context(universe) with MutabilityChecker
 }
 

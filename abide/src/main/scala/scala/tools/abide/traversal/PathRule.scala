@@ -26,7 +26,7 @@ trait PathRule extends PathRuleTraversal with WarningRuleTraversal {
  * PathRuleTraversal
  *
  * TraversalRule subtrait that provides helper methods to manage hierarchical path-dependent traversal.
- * The [[enter]] method will add elements to the path state and [[State.matches]] verifies whether a
+ * The [[enter]] method will add elements to the path state and `State.matches` verifies whether a
  * certain path is indeed contained in the path state.
  */
 trait PathRuleTraversal extends TraversalRule with ScopingTraversal {

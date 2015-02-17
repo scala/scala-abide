@@ -7,7 +7,7 @@ import scala.reflect.internal.traversal._
 
 trait TraversalTest extends AbideTest {
 
-  val context = new Context(global) with MutabilityChecker
+  val context = new Context(global) with MutabilityChecker with ScopeProvider
 
   def apply(rule: TraversalRule)(tree: global.Tree): List[rule.Warning] = {
     rule.traverse(tree.asInstanceOf[rule.universe.Tree])
