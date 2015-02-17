@@ -25,7 +25,7 @@ trait IncrementalWarnings extends TraversalRule {
    * Extension to [[RuleState]] that requires a transformer to register warnings
    */
   trait IncrementalState extends RuleState {
-    def nok(warning: Warning): State
+    private[traversal] def nok(warning: Warning): State
   }
 
   /**
@@ -78,7 +78,7 @@ trait KeyedWarnings extends TraversalRule {
    * An extension of [[RuleState]] that makes sure keyed warnings can be added to the state.
    */
   trait KeyedState extends RuleState {
-    def nok(key: Key, warning: Warning): State
+    private[traversal] def nok(key: Key, warning: Warning): State
   }
 
   /**
@@ -116,7 +116,7 @@ trait KeyedWarnings extends TraversalRule {
  * val warning = w"This is a warning"
  * ```
  *
- * Furthermore, the trait leverages the [[WarningExtractor.w]] macro to let
+ * Furthermore, the trait leverages the `WarningExtractor.w` macro to let
  * users refer to the current tree the rule is visiting when registering a new
  * warning:
  * ```scala

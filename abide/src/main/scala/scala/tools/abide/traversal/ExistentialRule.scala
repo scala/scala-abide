@@ -21,7 +21,8 @@ trait ExistentialRule extends TraversalRule with KeyedWarnings {
   def emptyState = State(Map.empty)
   case class State(map: Map[Key, Option[Warning]]) extends KeyedState {
     def warnings = map.flatMap(_._2).toList
-    def ok(key: Key): State = State(map + (key -> None))
+
+    private[ExistentialRule] def ok(key: Key): State = State(map + (key -> None))
 
     /**
      * Marks a key as possibly invalid until an ok is found or traversal ends (in which case the key is considered as globally invalid).
@@ -29,7 +30,8 @@ trait ExistentialRule extends TraversalRule with KeyedWarnings {
      *
      * required by [[KeyedState]]
      */
-    def nok(key: Key, warning: Warning): State = State(map + (key -> map.getOrElse(key, Some(warning))))
+    override private[traversal] def nok(key: Key, warning: Warning): State =
+      State(map + (key -> map.getOrElse(key, Some(warning))))
   }
 
   /** Marks a key as valid forever */

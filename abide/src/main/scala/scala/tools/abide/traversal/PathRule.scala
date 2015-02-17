@@ -21,10 +21,10 @@ trait PathRule extends TraversalRule with ScopingTraversal with IncrementalWarni
   def emptyState = State(Nil, Nil)
   case class State(path: List[Element], warnings: List[Warning]) extends IncrementalState {
     /** required by [[IncrementalState]] */
-    def nok(warning: Warning): State = State(path, warning :: warnings)
+    override private[traversal] def nok(warning: Warning): State = State(path, warning :: warnings)
 
-    def enter(element: Element): State = State(element :: path, warnings)
-    def leave: State = State(path.tail, warnings)
+    private[PathRule] def enter(element: Element): State = State(element :: path, warnings)
+    private[PathRule] def leave: State = State(path.tail, warnings)
 
     /** Provides access to the last element that was registered in the path */
     def last: Option[Element] = path.headOption

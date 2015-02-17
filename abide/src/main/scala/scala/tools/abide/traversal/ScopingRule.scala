@@ -21,10 +21,10 @@ trait ScopingRule extends TraversalRule with ScopingTraversal with IncrementalWa
   def emptyState = State(Nil, Nil)
   case class State(scope: List[Owner], warnings: List[Warning]) extends IncrementalState {
     /** required by [[IncrementalState]] */
-    def nok(warning: Warning): State = State(scope, warning :: warnings)
+    private[traversal] def nok(warning: Warning): State = State(scope, warning :: warnings)
 
-    def enter(owner: Owner): State = State(owner :: scope, warnings)
-    def leave: State = State(scope.tail, warnings)
+    private[ScopingRule] def enter(owner: Owner): State = State(owner :: scope, warnings)
+    private[ScopingRule] def leave: State = State(scope.tail, warnings)
 
     def childOf(matches: Owner => Boolean): Boolean = scope.nonEmpty && matches(scope.head)
     def childOf(owner: Owner): Boolean = childOf(_ == owner)

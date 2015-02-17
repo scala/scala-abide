@@ -20,6 +20,6 @@ trait WarningRule extends TraversalRule with IncrementalWarnings {
   def emptyState = State(Nil)
   case class State(warnings: List[Warning]) extends IncrementalState {
     /** required by [[IncrementalState]] */
-    def nok(warning: Warning): State = State(warning :: warnings)
+    override private[traversal] def nok(warning: Warning): State = State(warning :: warnings)
   }
 }
