@@ -46,8 +46,6 @@ class AbidePlugin(val global: Global) extends Plugin {
 
   val components: List[PluginComponent] = List(component)
 
-  global.analyzer.addAnalyzerPlugin _
-
   private lazy val classLoader = new java.net.URLClassLoader(
     abideCp.split(":").filter(_ != "").map(f => new java.io.File(f).toURI.toURL),
     getClass.getClassLoader
