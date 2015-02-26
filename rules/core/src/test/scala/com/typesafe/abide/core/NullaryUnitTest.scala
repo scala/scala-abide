@@ -5,6 +5,8 @@ import com.typesafe.abide.core._
 
 class NullaryUnitTest extends TraversalTest {
 
+  override def silent = true
+
   val rule = new NullaryUnit(context)
 
   "Nullary methods" should "be valid when their return type is not unit" in {

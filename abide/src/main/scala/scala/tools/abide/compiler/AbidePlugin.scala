@@ -177,5 +177,6 @@ class AbidePlugin(val global: Global) extends Plugin {
         global.reporter.error(NoPosition, "Unexpected abide option: " + option)
       }
     }
+    ruleContexts // make sure side-effecting context creation takes place!
   }
 }

@@ -6,4 +6,4 @@ def lookupSymbol(name: Name, suchThat: Symbol => Boolean): NameLookup
 ```
 as well as an `owner: Symbol` member that gives access to the symbol containing the current context. Finally, one can also access the enclosing context through `outer: ScopingContext`.
 
-The scope tracking implementation is based on that of the scala compiler and aims to provide scoping information that is as faithful as possible.
+The scope tracking implementation is based on that of the scala compiler and aims to provide scoping information that is as faithful as possible. However, due to the position-based lookup the system uses, one cannot access the context of trees that don't have an associated position. This is notably the case for `EmptyTree`, `noSelfType`, `pendingSuperCalls` and `TypeTree() if tree.tpe == NoType`. Such considerations only have a limited impact on rule creation as most of these trees are compiler artifacts.
