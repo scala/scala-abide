@@ -20,7 +20,7 @@ class TypeParameterShadowTest extends TraversalTest {
 
   it should "not be valid if it shadows another type when nested" in {
     val tree = fromString("""
-      trait Test {
+      class Test {
         def foobar[N[M[List[_]]]] = 1 // warn
       }
     """)

@@ -68,16 +68,20 @@ class AbidePlugin(val global: Global) extends Plugin {
   private lazy val ruleContexts = {
     import ru._
 
-    def contextGenerator(sym: ru.Symbol): ru.ModuleSymbol = sym.asClass.baseClasses.collectFirst {
-      case tpe: ru.TypeSymbol if tpe.toType.companion <:< ru.typeOf[ContextGenerator] =>
-        tpe.toType.companion.typeSymbol.asClass.module.asModule
+    def contextGenerator(sym: ru.Symbol): (ru.Type, ru.ModuleSymbol) = sym.asClass.baseClasses.collectFirst {
+      case tpe: ru.TypeSymbol if tpe.toType.companion <:< ru.typeOf[ContextGenerator[Context]] =>
+        val companion = tpe.toType.companion
+        val generatorTpe = companion.baseType(ru.symbolOf[ContextGenerator[Context]])
+        val moduleSymbol = companion.typeSymbol.asClass.module.asModule
+        (generatorTpe, moduleSymbol)
     }.get
 
     val contextGenerators = for (rule @ (ruleSymbol, ruleMirror) <- ruleMirrors) yield {
-      val generatorSymbol = contextGenerator(ruleSymbol)
+      val (generatorTpe, generatorSymbol) = contextGenerator(ruleSymbol)
+      val TypeRef(_, _, contextTpe :: Nil) = generatorTpe
       val generatorMirror = mirror reflectModule generatorSymbol
 
-      rule -> generatorMirror.instance.asInstanceOf[ContextGenerator]
+      (rule, generatorMirror.instance.asInstanceOf[ContextGenerator[Context]], contextTpe)
     }
 
     def typeTag[T: ru.TypeTag](obj: T): ru.TypeTag[T] = ru.typeTag[T]
@@ -85,11 +89,18 @@ class AbidePlugin(val global: Global) extends Plugin {
       if (typeTag(o1).tpe <:< typeTag(o2).tpe) o1 else o2
     }
 
-    contextGenerators.foldLeft(List.empty[((ru.ClassSymbol, ru.ClassMirror), Context)]) {
-      case (list, (rule @ (ruleSymbol, ruleMirror), generator)) =>
-        val context = generator.getContext(global)
-        val bottomCtx = list.foldLeft(context) { case (acc, (rule, ctx)) => generalize(acc, ctx) }
-        (rule -> bottomCtx) :: (list map { case (rule, ctx) => rule -> generalize(ctx, bottomCtx) })
+    val minimalGenerators = contextGenerators.foldLeft(List.empty[(ContextGenerator[Context], Type)]) {
+      case (list, (_, generator, tpe)) =>
+        if (list.exists(p => p._2 <:< tpe)) list
+        else (generator, tpe) :: list.filterNot(p => tpe <:< p._2)
+    }
+
+    val minimalContexts = minimalGenerators.map(p => p._1.getContext(global) -> p._2)
+
+    contextGenerators.map {
+      case (rule, _, tpe) =>
+        val context = minimalContexts.collectFirst { case (ctx, ctxTpe) if ctxTpe <:< tpe => ctx }.get
+        rule -> context
     }.toMap
   }
 
@@ -166,5 +177,6 @@ class AbidePlugin(val global: Global) extends Plugin {
         global.reporter.error(NoPosition, "Unexpected abide option: " + option)
       }
     }
+    ruleContexts // make sure side-effecting context creation takes place!
   }
 }

@@ -2,6 +2,7 @@ package scala.reflect.internal.traversal
 
 import scala.reflect.macros._
 import scala.language.experimental.macros
+import scala.language.implicitConversions
 
 /**
  * OptimizingMacros
@@ -134,6 +135,12 @@ object OptimizingMacros {
       case Reference(tpe, "Match") =>
         typeClasses(tpe, "Match")
 
+      case Reference(tpe, "CaseDef") =>
+        typeClasses(tpe, "CaseDef")
+
+      case Reference(tpe, "Block") =>
+        typeClasses(tpe, "Block")
+
       case Reference(tpe, "Ident") =>
         typeClasses(tpe, "Ident")
 
@@ -146,11 +153,29 @@ object OptimizingMacros {
       case Reference(tpe, "ValDef") =>
         typeClasses(tpe, "ValDef", "noSelfType$")
 
+      case Reference(tpe, "TypeDef") =>
+        typeClasses(tpe, "TypeDef")
+
+      case Reference(tpe, "Import") =>
+        typeClasses(tpe, "Import")
+
       case Reference(tpe, "Assign") =>
         typeClasses(tpe, "Assign")
 
       case Reference(tpe, "Apply") =>
         typeClasses(tpe, "Apply", "ApplyToImplicitArgs", "ApplyImplicitView", "pendingSuperCall$")
+
+      case Reference(tpe, "ClassDef") =>
+        typeClasses(tpe, "ClassDef")
+
+      case Reference(tpe, "ModuleDef") =>
+        typeClasses(tpe, "ModuleDef")
+
+      case Reference(tpe, "PackageDef") =>
+        typeClasses(tpe, "PackageDef")
+
+      case Reference(tpe, "Template") =>
+        typeClasses(tpe, "Template")
 
       case _ =>
         c.warning(tree.pos, "Unmanaged type: " + t + "\n" +
@@ -237,7 +262,27 @@ trait OptimizingTraversal extends Traversal {
   ) extends PartialFunction[Tree, Unit] {
     def isDefinedAt(tree: Tree): Boolean = pf.isDefinedAt(tree)
     def apply(tree: Tree): Unit = pf.apply(tree)
+
+    def merge(that: ClassExtraction): ClassExtraction = {
+      // make sure if one of the classes options was None, then the merged classes must be None as well
+      val mergedClasses = classes.flatMap(c => that.classes.map(tc => c ++ tc))
+
+      val mergedFunctions = new PartialFunction[Tree, Unit] {
+        def isDefinedAt(tree: Tree): Boolean = {
+          ClassExtraction.this.isDefinedAt(tree) || that.isDefinedAt(tree)
+        }
+
+        def apply(tree: Tree): Unit = {
+          if (ClassExtraction.this.isDefinedAt(tree)) ClassExtraction.this.apply(tree)
+          if (that.isDefinedAt(tree)) that.apply(tree)
+        }
+      }
+
+      ClassExtraction(mergedClasses, mergedFunctions)
+    }
   }
+
+  protected implicit def partialToClassExtraction(pf: PartialFunction[Tree, Unit]): ClassExtraction = ClassExtraction(None, pf)
 
   def optimize(pf: PartialFunction[Tree, Unit]): PartialFunction[Tree, Unit] = macro OptimizingMacros.optimize_impl
 }

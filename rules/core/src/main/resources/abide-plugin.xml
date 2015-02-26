@@ -1,12 +1,20 @@
 <plugin>
+  <rule class="com.typesafe.abide.core.ByNameRightAssociative" />
+  <rule class="com.typesafe.abide.core.DelayedInitSelect" />
+  <rule class="com.typesafe.abide.core.EmptyOrNonEmptyUsingSize" />
+  <rule class="com.typesafe.abide.core.Inaccessible" />
+  <rule class="com.typesafe.abide.core.InferAny" />
   <rule class="com.typesafe.abide.core.MatchCaseOnSeq" />
+  <rule class="com.typesafe.abide.core.NullaryOverride" />
+  <rule class="com.typesafe.abide.core.NullaryUnit" />
+  <rule class="com.typesafe.abide.core.PackageObjectClasses" />
+  <rule class="com.typesafe.abide.core.PolyImplicitOverload" />
+  <rule class="com.typesafe.abide.core.PrivateShadow" />
   <rule class="com.typesafe.abide.core.PublicMutable" />
   <rule class="com.typesafe.abide.core.RenamedDefaultParameter" />
   <rule class="com.typesafe.abide.core.StupidRecursion" />
+  <rule class="com.typesafe.abide.core.TypeParameterShadow" />
+  <rule class="com.typesafe.abide.core.UnusedMember" />
   <rule class="com.typesafe.abide.core.LocalValInsteadOfVar" />
   <rule class="com.typesafe.abide.core.MemberValInsteadOfVar" />
-  <rule class="com.typesafe.abide.core.UnusedMember" />
-  <rule class="com.typesafe.abide.core.ByNameRightAssociative" />
-  <rule class="com.typesafe.abide.core.PackageObjectClasses" />
-  <rule class="com.typesafe.abide.core.NullaryUnit" />
 </plugin>

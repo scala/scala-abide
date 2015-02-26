@@ -7,8 +7,8 @@ import scala.reflect.internal._
  *
  * @see [[ContextGenerator]]
  */
-object Rule extends ContextGenerator {
-  def getContext(universe: SymbolTable): Context = new Context(universe)
+object Rule extends ContextGenerator[Context] {
+  def getContext(universe: SymbolTable) = new Context(universe)
 }
 
 /**

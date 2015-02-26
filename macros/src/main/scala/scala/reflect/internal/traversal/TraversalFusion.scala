@@ -32,7 +32,7 @@ trait TraversalFusion {
 
     for (traversal <- traversals) {
       val classes = traversal match {
-        case optimizer: OptimizingTraversal => optimizer.step match {
+        case optimizer: OptimizingTraversal => optimizer.computedStep match {
           case optimizer.ClassExtraction(classes, _) => classes
           case _                                     => None
         }

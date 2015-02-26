@@ -1,47 +1,9 @@
 # Writing Scoping Rules
 
-Rules that need to track scoping information can take advantage of the `ScopingRule` base trait to do so. Much like for [warning rules](/wiki/traversal/warning-rules.md), scoping rules simply accumulate warnings by using a `nok` helper method. However, they also provide a scoping helper that enables simple scope accumulation:
+Rules that use scala-style scoping information to lookup symbols given names, for example, can use the `ScopingRule` base trait to do so. As in the [warning rules](/wiki/traversal/warning-rules.md) case, scoping rules simply accumulate warnings with a `nok` helper method based on local context and scoping information, which is automatically tracked by the `ScopingRule` trait behind the scenes. A helper method is provided by the `ScopeProvider` context mixin to access `ScopingContext` instances for each tree. The `ScopingContext` enables name-based symbol lookup through
 ```scala
-def enter(owner : Owner) : Unit
+def lookupSymbol(name: Name, suchThat: Symbol => Boolean): NameLookup
 ```
-will add `owner` to the scoping stack and the `state` provider can be queried to check whether we are currently in a particular owner with another helper:
-```scala
-def in(owner : Onwer) : Boolean
-```
+as well as an `owner: Symbol` member that gives access to the symbol containing the current context. Finally, one can also access the enclosing context through `outer: ScopingContext`.
 
-To illustrate `ScopingRule` usage, we will implement a recursive method definition checker that searches for weird definitions that point to themselves (see the full source at [StupidRecursion](/rules/core/src/main/scala/com/typesafe/abide/core/StupidRecursion.scala)).
-
-We start by defining the rule class:
-```scala
-import scala.tools.abide._
-import scala.tools.abide.traversal._
-
-class StupidRecursion(val context : Context) extends ScopingRule {
-  val name = "stupid-recursion"
-}
-```
-and we provide the required `Warning` type:
-```scala
-case class Warning(tree : Tree) extends RuleWarning {
-  val pos = tree.pos
-  val message = s"The value $tree is recursively used " +
-                 "in it's directly defining scope"
-}
-```
-
-To manage scoping, we want to register entry of any method definition in the `step` partial function. To implement this, we use the `enter` helper and apply it to any member `def` declaration discovered during AST traversal:
-```scala
-case defDef @ q"def $name : $tpt = $body" => enter(defDef.symbol)
-```
-
-Scope is automatically handled by the `ScopingRule` trait, and we can now query the internal traversal state with `state.in(sym)` to evaluate the current scoping state.
-
-Now that we have scope, we implement stupid recursion checking by simply verifying that definition access doesn't point to the current scope (`state in tree.symbol`):
-```scala
-case id @ Ident(_) if id.symbol != null && (state in id.symbol) =>
-  nok(Warning(id))
-case s @ Select(_, _) if s.symbol != null && (state in s.symbol) =>
-  nok(Warning(s))
-```
-
-And... we're done!
+The scope tracking implementation is based on that of the scala compiler and aims to provide scoping information that is as faithful as possible. However, due to the position-based lookup the system uses, one cannot access the context of trees that don't have an associated position. This is notably the case for `EmptyTree`, `noSelfType`, `pendingSuperCalls` and `TypeTree() if tree.tpe == NoType`. Such considerations only have a limited impact on rule creation as most of these trees are compiler artifacts.

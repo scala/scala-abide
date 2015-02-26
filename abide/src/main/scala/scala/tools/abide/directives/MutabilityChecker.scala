@@ -5,10 +5,16 @@ import scala.reflect.internal.util._
 
 import scala.collection.mutable.{ Map => MutableMap }
 
+/**
+ * Witness
+ *
+ * Sealed type that provides a proof of mutability for a given symbol.
+ */
 sealed abstract class Witness {
   def isMutable: Boolean
 }
 
+/** Witness for which the symbol is mutable. */
 abstract class MutableWitness extends Witness {
   val path: Seq[String]
   def isMutable: Boolean = true
@@ -18,18 +24,28 @@ abstract class MutableWitness extends Witness {
   }
 }
 
+/** Symbol is a publicly accessible `var` definition. */
 case class PublicVarWitness(path: Seq[String]) extends MutableWitness {
   override def toString: String = s"${path.mkString(".")} is a public `var`"
 }
 
+/** Symbol extends a type that provides a mutable API. */
 case class ExtendsMutableWitness(path: Seq[String], tpt: String) extends MutableWitness {
   override def toString: String = s"${path.mkString(".")} is a public `val` of type $tpt <: Mutable"
 }
 
+/** Witness for which the symbol is not mutable. */
 case object NoWitness extends Witness {
   def isMutable: Boolean = false
 }
 
+/**
+ * MutabilityChecker
+ *
+ * Directive that provides a mutability verification API.
+ *
+ * @see [[publicMutable]]
+ */
 trait MutabilityChecker {
 
   val universe: SymbolTable
@@ -40,6 +56,7 @@ trait MutabilityChecker {
 
   private val publicMutableCache: MutableMap[Type, Witness] = MutableMap.empty
 
+  /** Determines whether the type `tpt` provides a mutable public API. */
   def publicMutable(tpt: Type): Witness = {
     def rec(tpts: List[(Type, Seq[String])], seen: Set[Type]): Witness = {
       var nextTpes: List[(Type, Seq[String])] = List.empty
