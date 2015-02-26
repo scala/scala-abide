@@ -48,7 +48,7 @@ object ScopingRuleTraversal extends ContextGenerator[Context with ScopeProvider]
  *
  * The context provides a `lookupContext(tree: Tree)` method that retrieves the typing context for a given
  * tree. This context of type `ScopingContext` can then be used to lookup symbols through
- * `lookupSymbol(name: Name, suchThat: Symbol => Boolean)`.
+ * `lookupSymbol(name: Name, filter: Symbol => Boolean)`.
  *
  * The scoping mechanism is handled by the `ScopeProvider` directive that is mixed into the shared context.
  *

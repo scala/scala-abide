@@ -54,9 +54,9 @@ trait ScopeProvider {
     /** Containing symbol (e.g. class, method, val, etc.) */
     lazy val owner: universe.Symbol = context.owner.asInstanceOf[universe.Symbol]
 
-    /** Symbol lookup based on searched `name` and filter `suchThat` */
-    def lookupSymbol(name: universe.Name, suchThat: universe.Symbol => Boolean): universe.NameLookup = {
-      context.lookupSymbol(name.asInstanceOf[global.Name], suchThat.asInstanceOf[global.Symbol => Boolean]).asInstanceOf[universe.NameLookup]
+    /** Symbol lookup based on searched `name` and filter `filter` */
+    def lookupSymbol(name: universe.Name, filter: universe.Symbol => Boolean): universe.NameLookup = {
+      context.lookupSymbol(name.asInstanceOf[global.Name], filter.asInstanceOf[global.Symbol => Boolean]).asInstanceOf[universe.NameLookup]
     }
 
     override def toString: String = context.toString
