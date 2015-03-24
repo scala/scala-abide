@@ -27,7 +27,7 @@ object AbideBuild extends Build {
       mappings in (Compile, packageSrc) ++= (mappings in (macros, Compile, packageSrc)).value
     ).dependsOn(macros % "compile->compile;test->test")
 
-  lazy val sbt = Project("sbt-abide", file("sbt-plugin"))
+  lazy val sbtAbide = Project("sbt-abide", file("sbt-plugin"))
     .settings(sharedSettings : _*)
     .settings(
       sbtPlugin    := true,
@@ -54,7 +54,7 @@ object AbideBuild extends Build {
 
   lazy val rules = Seq(coreRules, akkaRules, extraRules)
 
-  lazy val allProjects = Seq(macros, abide, sbt) ++ rules
+  lazy val allProjects = Seq(macros, abide, sbtAbide) ++ rules
 
   lazy val filter = ScopeFilter(inAggregates(ThisProject, includeRoot=false))
 
