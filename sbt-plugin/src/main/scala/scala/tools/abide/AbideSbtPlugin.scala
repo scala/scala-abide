@@ -55,30 +55,33 @@ object AbideSbtPlugin extends AutoPlugin {
         val abideCp: Seq[java.io.File] = update.value.select(configurationFilter("abide"))
         streams.value.log.debug("AbideCp: " + abideCp.mkString("\n"))
 
-        val (ruleClasses, analyzerClasses) = {
+        val (ruleClasses, analyzerClasses, presenterClasses) = {
           var rules: Seq[String] = Seq.empty
           var analyzers: Seq[String] = Seq.empty
+          var presenters: Seq[String] = Seq.empty
 
           for (file <- abideCp) {
             val pluginXmlStream = sbt.classpath.ClasspathUtilities.toLoader(Seq(file)).getResourceAsStream("abide-plugin.xml")
 
             if (pluginXmlStream != null) scala.xml.XML.load(pluginXmlStream) match {
               case <plugin>{ elems @ _* }</plugin> => elems.foreach {
-                case rule @ <rule/>         => rules :+= (rule \ "@class").text
-                case analyzer @ <analyzer/> => analyzers :+= (analyzer \ "@class").text
-                case _                      => ()
+                case rule @ <rule/>           => rules :+= (rule \ "@class").text
+                case analyzer @ <analyzer/>   => analyzers :+= (analyzer \ "@class").text
+                case presenter @ <presenter/> => presenters :+= (presenter \ "@class").text
+                case _                        => ()
               }
               case _ => ()
             }
           }
 
-          (rules, analyzers)
+          (rules, analyzers, presenters)
         }
 
         val ruleOpts = ruleClasses.map(cls => "-P:abide:ruleClass:" + cls)
         val analyzerOpts = analyzerClasses.map(cls => "-P:abide:analyzerClass:" + cls)
+        val presenterOpts = presenterClasses.map(cls => "-P:abide:presenterClass:" + cls)
 
-        val options = cpOpts ++ ruleOpts ++ analyzerOpts ++ compatibilityOpts ++ sourcePaths
+        val options = cpOpts ++ ruleOpts ++ analyzerOpts ++ presenterOpts ++ compatibilityOpts ++ sourcePaths
 
         streams.value.log.debug(options.mkString("\n"))
 
@@ -93,7 +96,8 @@ object AbideSbtPlugin extends AutoPlugin {
         if (nRules > 0) {
           streams.value.log.info(s"Checking $nRules abide rules")
           abideObj.main(options.toArray)
-        } else
+        }
+        else
           streams.value.log.info(s"No abide rules found. Maybe you forgot to add dependencies on rule packages?")
       }
       else {

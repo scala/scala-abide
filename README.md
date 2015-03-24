@@ -48,6 +48,7 @@ scalacOptions ++= Seq(
   "-P:abide:abidecp:<some.rules.classpath>",
   "-P:abide:ruleClass:<some.rule.Class>",
   "-P:abide:analyzerClass:<some.analyzer.generator.Module>",
+  "-P:abide:presenterClass:<some.presenter.generator.Module>",
   ...)
 ```
 or simply add these options to your call to `scalac` to enable **abide** during your standard compilation run.
@@ -68,6 +69,7 @@ scalac -Xplugin:<path/to/abide.jar>                            \
        -P:abide:abidecp:<some.rules.classpath>                 \
        -P:abide:ruleClass:<some.rule.Class>                    \
        -P:abide:analyzerClass:<some.analyzer.generator.Module> \
+       -P:abide:presenterClass:<some.presenter.generator.Module> \
        ...
 ```
 
@@ -99,6 +101,10 @@ When rule application can benefit from some global traversal logic, or partial t
 performed in an `Analyzer` subtype. These analyzers are typically non-trivial and will be integrated into the main **abide** deliverable to then be shared by all rules. However, analyzers can also be provided alongside rules in plugin
 libraries.
 
+4. [presenter extension](/wiki/extensions.md#defining-presenters)
+The **abide** framework initially ships with one presenter but provides a powerful extension point to accomodate user-defined
+presenters. These presenters can either be defined locally (using the `Project(...).dependsOn(rules % "abide")` construction) or shared over github by submitting new presenters as pull requests to this repository.
+
 The provided extension mechanism uses a plugin architecture based on an xml description that specifies plugin
 capabilities. This description sits at the base of the `resources` directory, in `abide-plugin.xml` and has the 
 following structure:
@@ -107,6 +113,7 @@ following structure:
   <rule class="some.rule.Class" />
   <rule class="some.other.rule.Class" />
   <analyzer class="some.analyzer.generator.Class" />
+  <presenter class="some.presenter.generator.Class" />
 </plugin>
 ```
 

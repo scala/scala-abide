@@ -4,6 +4,17 @@ import scala.tools.nsc._
 import scala.tools.abide._
 
 /**
+ * ConsolePresenterGenerator
+ *
+ * @see [[ConsolePresenter]]
+ */
+object ConsolePresenterGenerator extends PresenterGenerator {
+  def getPresenter(global: Global): ConsolePresenter = {
+    new ConsolePresenter(global)
+  }
+}
+
+/**
  * ConsolePresenter
  *
  * Simple [[Presenter]] that outputs warnings as compiler warnings

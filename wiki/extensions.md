@@ -59,3 +59,29 @@ information and warnings can be collected by a single pass through a compilation
 _traversal rules_ in the **abide** lingo. See
 [writing traversal rules](/wiki/traversal/traversal-rules.md) and
 [abide rules](/wiki/rules.md) for more details.
+
+### Defining presenters
+
+In order to output results, **abide** relies on `Presenter` instances that know how to actually process the output of ***abide***.
+For example, the `ConsolePresenter` will output the results as compiler messages.
+
+When declaring a presenter, a generator type has to be attached to it so the framework will know how to actually create the presenter.
+A `PresenterGenerator` is an object that knows how to instantiate an `Presenter` given all the needed context and for it to run.
+
+```scala
+object SomePresenterGenerator extends PresenterGenerator {
+  def generatePresenter(global: Global) : Presenter =
+    new SomePresenter(global)
+}
+```
+
+```scala
+class SomePresenter(protected val global: Global) extends Presenter {
+
+  import global._
+
+  def apply(unit: CompilationUnit, warnings: List[Warning]): Unit = {
+    // TODO: implement the presenter
+  }
+}
+```

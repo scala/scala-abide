@@ -65,6 +65,12 @@ class AbidePlugin(val global: Global) extends Plugin {
     analyzerMirror.instance.asInstanceOf[AnalyzerGenerator]
   }
 
+  private lazy val presenterGenerators = for (presenterClass <- presenterClasses) yield {
+    val presenterSymbol = mirror staticModule presenterClass
+    val presenterMirror = mirror reflectModule presenterSymbol
+    presenterMirror.instance.asInstanceOf[PresenterGenerator]
+  }
+
   private lazy val ruleContexts = {
     import ru._
 
@@ -126,7 +132,12 @@ class AbidePlugin(val global: Global) extends Plugin {
     }
   }
 
-  private lazy val presenter = new presentation.ConsolePresenter(global).asInstanceOf[Presenter { val global: AbidePlugin.this.global.type }]
+  private lazy val presenters = {
+    presenterGenerators.map { generator =>
+      val presenter = generator.getPresenter(global)
+      presenter.asInstanceOf[Presenter { val global: AbidePlugin.this.global.type }]
+    }
+  }
 
   private[abide] object component extends {
     val global: AbidePlugin.this.global.type = AbidePlugin.this.global
@@ -142,7 +153,7 @@ class AbidePlugin(val global: Global) extends Plugin {
           gen => gen(_ => true)(unit.body)
         }
 
-        presenter(unit, warnings)
+        presenters.foreach(_.apply(unit, warnings))
       }
     }
   }
@@ -150,6 +161,7 @@ class AbidePlugin(val global: Global) extends Plugin {
   private var abideCp: String = ""
   private var ruleClasses: List[String] = Nil
   private var analyzerClasses: List[String] = Nil
+  private var presenterClasses: List[String] = Nil
 
   override def processOptions(options: List[String], error: String => Unit): Unit = {
     for (option <- options) {
@@ -159,12 +171,22 @@ class AbidePlugin(val global: Global) extends Plugin {
       else if (option.startsWith("analyzerClass:")) {
         analyzerClasses ::= option.substring("analyzerClass:".length)
       }
+      else if (option.startsWith("presenterClass:")) {
+        presenterClasses ::= option.substring("presenterClass:".length)
+      }
       else if (option.startsWith("abidecp:")) {
         abideCp = option.substring("abidecp:".length)
       }
       else {
         global.reporter.error(NoPosition, "Unexpected abide option: " + option)
       }
+    }
+
+    if (presenterClasses.isEmpty) {
+      val defaultPresenter = ConsolePresenterGenerator
+      val presenterPackage = defaultPresenter.getClass.getPackage.getName
+      val presenterName = defaultPresenter.getClass.getName
+      presenterClasses ::= s"$presenterPackage$presenterName"
     }
   }
 }

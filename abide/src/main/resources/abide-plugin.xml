@@ -1,4 +1,5 @@
 <plugin>
   <analyzer class="scala.tools.abide.traversal.FusingTraversalAnalyzerGenerator" />
   <analyzer class="scala.tools.abide.traversal.NaiveTraversalAnalyzerGenerator" />
+  <presenter class="scala.tools.abide.presentation.ConsolePresenterGenerator" />
 </plugin>
