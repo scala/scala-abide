@@ -4,6 +4,24 @@ import scala.tools.nsc._
 import scala.tools.abide._
 
 /**
+ * Supertrait for presenter generator objects.
+ *
+ * The [[PresenterGenerator]] that will instantiate the [[Presenter]] necessary.
+ *
+ *
+ * @see [[presentation.ConsolePresenterGenerator]] for a concrete example
+ * @see [[Presenter]]
+ */
+trait PresenterGenerator {
+
+  /**
+   * Buils a new [[Presenter]]
+   */
+  def getPresenter(global: Global): Presenter
+
+}
+
+/**
  * Presenter
  *
  * Base class for result "presentation". A presenter instance will receive warnings as input
