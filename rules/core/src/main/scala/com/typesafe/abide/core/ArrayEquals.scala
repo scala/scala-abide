@@ -11,7 +11,7 @@ class ArrayEquals(val context: Context) extends WarningRule {
 
   case class Warning(appl: Tree) extends RuleWarning {
     val pos = appl.pos
-    val message = "equals for Arrays is not a deep equals and will always perform instance equality"
+    val message = "equals for Arrays is not a deep equals and will always perform instance equality (see the implicitly available ArrayOps.sameElements for a deep equals)"
   }
 
   val step = optimize {
