@@ -252,3 +252,11 @@ source : [BigDecimalCreatedWithFloatingPointType](/rules/core/src/main/scala/com
 
 Since floating points types has got limited precision it is a good idea to use BigDecimal
 but if creating instances from BigDecimal you will already have lost that precision.
+
+## Creating BigDecimal instances from float or double
+
+name : **big-decimal-with-floating-point-type**
+source : [BigDecimalCreatedWithFloatingPointType](/rules/core/src/main/scala/com/typesafe/abide/core/BigDecimalCreatedWithFloatingPointType)
+
+Since floating points types has got limited precision it is a good idea to use BigDecimal
+but if creating instances from BigDecimal you will already have lost that precision.
