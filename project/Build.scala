@@ -14,7 +14,7 @@ object AbideBuild extends Build {
     testOptions in Test += Tests.Argument("-oF"),
     libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _ % "provided"),
     libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _ % "provided"),
-    libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.7" % "test",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test",
     publishArtifact in Test := false
   )
 
