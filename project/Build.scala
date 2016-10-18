@@ -9,7 +9,7 @@ object AbideBuild extends Build {
   )
 
   lazy val sharedSettings = Formatting.sbtFilesSettings ++ abideSettings ++ Seq(
-    scalaVersion := "2.11.4",
+    scalaVersion := "2.11.8",
     scalacOptions ++= Seq("-Xfuture", "-deprecation", "-feature" /*, "-Xfatal-warnings"*/),
     testOptions in Test += Tests.Argument("-oF"),
     libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _ % "provided"),
@@ -31,7 +31,7 @@ object AbideBuild extends Build {
     .settings(sharedSettings: _*)
     .settings(
       sbtPlugin := true,
-      scalaVersion := "2.10.4"
+      scalaVersion := "2.10.6"
     )
 
   lazy val coreRules = Project("abide-core", file("rules/core"))
