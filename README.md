@@ -90,7 +90,7 @@ The **abide** framework comes with a few pre-made rule packages that can be sele
 Setting aside bugfixes and basic feature modification, **abide** components are generally loosely coupled and self-contained to enable simple extensions to the framework. Such extensions will typically fall into one of three different categories and will vary in complexity. From simplest (and most useful extension point) to most involved:
 
 1. [rule extension](/wiki/rules.md)  
-The **abide** framework initially ships with few rules but provides a powerful extension point to accomodate user-defined
+The **abide** framework initially ships with few rules but provides a powerful extension point to accommodate user-defined
 rule verification. These rules can either be defined locally (using the `Project(...).dependsOn(rules % "abide")` construction) or shared over github by submitting new rules as pull requests to this repository.
 
 2. [directive extension](/wiki/extensions.md#adding-new-directives)  
@@ -102,7 +102,7 @@ performed in an `Analyzer` subtype. These analyzers are typically non-trivial an
 libraries.
 
 4. [presenter extension](/wiki/extensions.md#defining-presenters)
-The **abide** framework initially ships with one presenter but provides a powerful extension point to accomodate user-defined
+The **abide** framework initially ships with one presenter but provides a powerful extension point to accommodate user-defined
 presenters. These presenters can either be defined locally (using the `Project(...).dependsOn(rules % "abide")` construction) or shared over github by submitting new presenters as pull requests to this repository.
 
 The provided extension mechanism uses a plugin architecture based on an xml description that specifies plugin
