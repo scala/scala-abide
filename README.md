@@ -6,42 +6,45 @@ optimization away from the rule writter.
 
 ## Using the tool
 
-**Abide** is only available for sbt (and command line) for now, but will be ported to a Scala-IDE plugin and possibly to maven/gradle/etc as well. To add **abide** verification to an sbt project, three different options are available :
+**Abide** is only available for sbt (and command line) for now, but will be ported to a ScalaIDE plugin and possibly to maven/gradle/etc as well. To add **abide** verification to an sbt project, three different options are available :
 
 ### Important!
 
-At this moment, **abide** has not been released. You need to run `sbt publish-local` in a local checkout of the abide repository.
+At this moment, **abide** has not been released. You need to run `sbt publishLocal` in a local checkout of the abide repository.
 
-### Sbt Plugin
+### sbt plugin
 
-Activate the sbt-abide plugin in both scala 2.10 and 2.11 projects by extending your `project/plugin.sbt` file with
+Activate the sbt-abide plugin in both Scala 2.10 and 2.11 projects by extending your `project/plugin.sbt` file with
 
 ```scala
 addSbtPlugin("com.typesafe" % "sbt-abide" % "0.1-SNAPSHOT")
 ```
-> **abide** requires Sbt version 0.13.5 or later. Make sure you have the following line in `project/build.properties`
+> **abide** requires Sbt version 0.13.12 or later. Make sure you have a line like the following in `project/build.properties`
 
 ```
-sbt.version=0.13.5
+sbt.version=0.13.12
 ```
 
 Now you need to choose the rule libraries by adding the required jars to your dependencies in your project definitions (eg. `build.sbt`). Notice the `abide` configuration at the end of the line.
+
 ```scala
 libraryDependencies += "com.typesafe" %% "abide-core" % "0.1-SNAPSHOT" % "abide"
 ```
+
 One can also use sbt projects as rule libraries by using `dependsOn(rules % "abide")` in the project definition. This allows one to define project-specific rules!
 
-This mode can run on scala 2.10 projects by using the compiler `-Xsource:2.10` flag (automatically managed by
-the plugin), however one _must_ force the use of the **abide** libraries version built against scala 2.11! You can do that by specifying the full cross-compiled name, instead of relying on the `%%` operator:
+This mode can run on Scala 2.10 projects by using the compiler `-Xsource:2.10` flag (automatically managed by
+the plugin), however one _must_ force the use of the **abide** libraries version built against Scala 2.11! You can do that by specifying the full cross-compiled name, instead of relying on the `%%` operator:
 
 ```scala
 libraryDependencies += "com.typesafe" % "abide-core_2.11" % "0.1-SNAPSHOT" % "abide"
 ```
 
 
-### Compiler Plugin
+### Compiler plugin
 
-**Abide** can be activated as a compiler plugin in **scala 2.11** projects by extending the sbt build file with
+**Abide** can be activated as a compiler plugin in **Scala 2.11** projects by extending the sbt build file with
+
 ```scala
 libraryDependencies += compilerPlugin("com.typesafe" %% "abide" % "0.1-SNAPSHOT")
 scalacOptions ++= Seq(
@@ -51,6 +54,7 @@ scalacOptions ++= Seq(
   "-P:abide:presenterClass:<some.presenter.generator.Module>",
   ...)
 ```
+
 or simply add these options to your call to `scalac` to enable **abide** during your standard compilation run.
 
 Since sbt configurations are not available to compiler plugins, the `abidecp` argument is required to specify the
@@ -58,12 +62,12 @@ classpath where the **abide** rules are located. In turn, the actual paths to th
 `ruleClass` argument (which will typically appear multiple times, once per rule) and plugin analyzer generators will
 appear in `analyzerClass` arguments (also multiple instances).
 
-While slightly more complexe than the following alternative, this mode provides integration capabilities for non-sbt
-build tools like eclipse or maven.
+While slightly more complex than the following alternative, this mode provides integration capabilities for non-sbt
+build tools like Eclipse or maven.
 
 ### Command line
 
-The **abide** compiler plugin can also be used directly on the command line by adding the plugin to your `scalac` command and using the options described in the [compiler plugin](#compiler-plugin) as cli arguments:
+The **abide** compiler plugin can also be used directly on the command line by adding the plugin to your `scalac` command and using the options described in the [compiler plugin](#compiler-plugin) as command-line arguments:
 ```
 scalac -Xplugin:<path/to/abide.jar>                            \
        -P:abide:abidecp:<some.rules.classpath>                 \
@@ -73,7 +77,7 @@ scalac -Xplugin:<path/to/abide.jar>                            \
        ...
 ```
 
-Note that this feature, as in the compiler plugin case, can only be used on **scala 2.11** projects.
+Note that this feature, as in the compiler plugin case, can only be used on **Scala 2.11** projects.
 
 ## Existing plugins
 
@@ -85,7 +89,7 @@ The **abide** framework comes with a few pre-made rule packages that can be sele
 
 3. [rules/akka](/wiki/akka-rules.md) provided by `"com.typesafe" %% "abide-akka" % "0.1-SNAPSHOT"`
 
-## Extending Abide
+## Extending abide
 
 Setting aside bugfixes and basic feature modification, **abide** components are generally loosely coupled and self-contained to enable simple extensions to the framework. Such extensions will typically fall into one of three different categories and will vary in complexity. From simplest (and most useful extension point) to most involved:
 
@@ -120,7 +124,7 @@ following structure:
 Directives don't need to (and shouldn't) be specified in the plugin description as they will be statically referenced
 in the source code (and they can't be dynamically subsumed like analyzers).
 
-## Further Work
+## Further work
 
 - The **abide** compiler plugin needs to manage rule enabling and disabling. This should be implemented in
 `scala.tools.abide.compiler.AbidePlugin` in the `component.apply` method by replacing the analyzer filter (first argument of
@@ -136,4 +140,4 @@ generators, etc. One can also look at the tests to witness **abide** verificatio
 example, to be able to output interactive HTML5 reports.
 
 - Enabling cross-unit rules by writing a new analyzer. The base would resemble that of the `FusingTraversalAnalyzer` but
-would additionnaly require keeping track of the result of previous traversals for incremental compilation integration.
+would additionally require keeping track of the result of previous traversals for incremental compilation integration.
