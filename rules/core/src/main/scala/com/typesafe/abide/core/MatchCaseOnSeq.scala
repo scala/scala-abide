@@ -6,8 +6,6 @@ import scala.tools.abide.traversal._
 class MatchCaseOnSeq(val context: Context) extends WarningRule {
   import context.universe._
 
-  val name = "match-case-on-seq"
-
   case class Warning(scrut: Tree, mtch: Tree) extends RuleWarning {
     val pos = mtch.pos
     val message = s"Seq typed scrutinee $scrut shouldn't be matched against :: typed case $mtch"

@@ -13,8 +13,6 @@ class PublicMutable(val context: Context with MutabilityChecker) extends Warning
   import context._
   import universe._
 
-  val name = "public-mutable-fields"
-
   abstract class Warning(val tree: Tree) extends RuleWarning {
     val pos = tree.pos
     val name = tree.asInstanceOf[ValDef].name.toString.trim

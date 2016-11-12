@@ -62,7 +62,4 @@ trait Rule {
 
   /** The warning type we're dealing with in this rule. @see [[RuleWarning]] */
   type Warning <: RuleWarning
-
-  /** We require a name field to manage rules (enable/disable) and pretty-print them */
-  val name: String
 }

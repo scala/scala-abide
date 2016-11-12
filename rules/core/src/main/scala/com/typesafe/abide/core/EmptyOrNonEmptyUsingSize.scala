@@ -7,8 +7,6 @@ class EmptyOrNonEmptyUsingSize(val context: Context) extends WarningRule {
 
   import context.universe._
 
-  val name = "empty-nonempty-using-size"
-
   case class Warning(appl: Tree, empty: Boolean) extends RuleWarning {
     val pos = appl.pos
     val message = "Traversable.size is very expensive on some collections, use " +

@@ -6,8 +6,6 @@ import scala.tools.abide.traversal._
 class FixedNameOverrides(val context: Context) extends WarningRule {
   import context.universe._
 
-  val name = "fixed-name-overrides"
-
   case class Warning(vd: ValDef, sn: String, sym: MethodSymbol) extends RuleWarning {
     val pos = vd.pos
     val message = s"Renaming parameter ${vd.name} of method ${vd.symbol.owner.name} from ${sn} in super-type ${sym.owner.name} can lead to confusion"
