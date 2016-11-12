@@ -1,18 +1,3 @@
-# SBT
-boot/
-lib_managed/
-target/
-.history
-
-# Eclipse
-.cache
-.classpath
-.project
-.scala_dependencies
-.settings
-.target/
-eclipse.sbt
-
 core/project/target
 core/target
 rules/project/target
@@ -21,15 +6,8 @@ project/target
 target
 *.swp
 *.BAK
+.classpath
+.project
 *.prefs
+.cache
 .tmpBin/
-
-# IntelliJ
-.idea/
-*.iml
-*.ipr
-*.iws
-out/
-
-# Mac
-.DS_Store
