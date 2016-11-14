@@ -1,3 +1,4 @@
 <plugin>
   <rule class="com.typesafe.abide.extra.FixedNameOverrides" />
+  <rule class="com.typesafe.abide.extra.InstanceOfUsed" />
 </plugin>

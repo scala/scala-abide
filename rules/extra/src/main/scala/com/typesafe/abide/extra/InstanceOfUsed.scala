@@ -3,7 +3,7 @@ package com.typesafe.abide.extra
 import scala.tools.abide._
 import scala.tools.abide.traversal._
 
-class InstancefOfUsed(val context: Context) extends WarningRule {
+class InstanceOfUsed(val context: Context) extends WarningRule {
   import context.universe._
 
   val name = "instance-of-used"

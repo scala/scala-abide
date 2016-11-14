@@ -4,7 +4,7 @@ import scala.tools.abide.traversal.TraversalTest
 
 class InstanceOfUsedTest extends TraversalTest {
 
-  val rule = new InstancefOfUsed(context)
+  val rule = new InstanceOfUsed(context)
 
   "usages of asInstanceOf[T]" should "give a warning" in {
     val tree = fromString("""

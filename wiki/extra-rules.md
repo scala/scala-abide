@@ -12,6 +12,6 @@ When overriding a method, it can be worthwhile to keep the argument names (and o
 ## Usage of isInstanceOf and asInstanceOf instead of pattern matching
 
 name : **instance-of-used**
-source : [InstancefOfUsed](/rules/extra/src/main/scala/com/typesafe/abide/extra/InstanceOfUsed.scala)
+source : [InstanceOfUsed](/rules/extra/src/main/scala/com/typesafe/abide/extra/InstanceOfUsed.scala)
 
 It is safer and more idiomatic to use pattern matching than to use isInstanceOf and asInstanceOf on objects
