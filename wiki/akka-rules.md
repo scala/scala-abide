@@ -34,11 +34,3 @@ class ExampleActor extends Actor {
 }
 ```
 to make sure the sender we use to reply is indeed the one associated to the received message.
-
-## Closing over actor context
-
-name : **closing-over-context**  
-source : [ClosingOverContext](/rules/akka/src/main/scala/com/typesafe/abide/akka/ClosingOverContext.scala)
-
-The actor `context` shouldn't be used in `Flow.onComplete`  
-TODO: a real explanation :)

@@ -99,12 +99,12 @@ class AbidePlugin(val global: Global) extends Plugin {
     }.toMap
   }
 
-  private lazy val rules = for (rule @ (ruleSymbol, ruleMirror) <- ruleMirrors) yield {
+  private lazy val rules: List[Rule] = for (rule @ (ruleSymbol, ruleMirror) <- ruleMirrors) yield {
     val constructorSymbol = ruleSymbol.typeSignature.member(ru.termNames.CONSTRUCTOR).asMethod
     val constructorMirror = ruleMirror reflectConstructor constructorSymbol
     val context = ruleContexts(rule)
 
-    constructorMirror(context).asInstanceOf[Rule { val context: Context { val universe: AbidePlugin.this.global.type } }]
+    constructorMirror(context).asInstanceOf[Rule]
   }
 
   private lazy val analyzers: List[(Rule => Boolean) => Analyzer { val global: AbidePlugin.this.global.type }] = {
