@@ -2,8 +2,14 @@ sudo: false
 language: scala
 script:
   - sbt clean update compile test
-jdk:
-  - openjdk7
+matrix:
+  include:
+  - scala: 2.11.8
+    jdk: openjdk6
+    env: IS_PUBLISH_JDK=true
+  - scala: 2.12.0
+    jdk: oraclejdk8
+    env: IS_PUBLISH_JDK=true
 notifications:
   email:
     - adriaan.moors@lightbend.com

@@ -9,12 +9,13 @@ object AbideBuild extends Build {
   )
 
   lazy val sharedSettings = Formatting.sbtFilesSettings ++ abideSettings ++ Seq(
-    scalaVersion := "2.11.8",
+    crossScalaVersions := List("2.11.8", "2.12.0"),
+    scalaVersion := crossScalaVersions.value.head,
     scalacOptions ++= Seq("-Xfuture", "-deprecation", "-feature" /*, "-Xfatal-warnings"*/),
     testOptions in Test += Tests.Argument("-oF"),
-    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _ % "provided"),
-    libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _ % "provided"),
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test",
+    libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
+    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test",
     publishArtifact in Test := false
   )
 
@@ -31,7 +32,8 @@ object AbideBuild extends Build {
     .settings(sharedSettings: _*)
     .settings(
       sbtPlugin := true,
-      scalaVersion := "2.10.6"
+      crossScalaVersions := Seq("2.10.6"),  
+      scalaVersion := crossScalaVersions.value.head
     )
 
   lazy val coreRules = Project("abide-core", file("rules/core"))
@@ -42,8 +44,8 @@ object AbideBuild extends Build {
     .settings(sharedSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
-        "com.typesafe.akka" %% "akka-actor" % "2.3.3" % "test",
-        "com.typesafe.akka" %% "akka-stream-experimental" % "0.4" % "test"
+        "com.typesafe.akka" %% "akka-actor" % "2.4.12" % "test",
+        "com.typesafe.akka" %% "akka-stream" % "2.4.12" % "test"
       )
     )
     .dependsOn(abide % "compile->compile;test->test")
@@ -58,7 +60,7 @@ object AbideBuild extends Build {
 
   lazy val filter = ScopeFilter(inAggregates(ThisProject, includeRoot = false))
 
-  lazy val root = (Project("root", file("."))
+  lazy val root = (Project("root", file(".")).enablePlugins(sbtdoge.CrossPerProjectPlugin)
     .settings(
       //test in Test <<= allProjects.map(p => test in Test in p).dependOn,
       //test in Test      := (test in tests in Test).value,
