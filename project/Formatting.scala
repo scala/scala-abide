@@ -13,7 +13,7 @@ object Formatting {
     Seq(sr.preferences := sr.preferences.value
         .setPreference(AlignSingleLineCaseStatements, true)
         .setPreference(CompactControlReadability, true)
-        .setPreference(PreserveDanglingCloseParenthesis, true)
+        .setPreference(DanglingCloseParenthesis, Preserve)
        )
   }
   lazy val sbtFilesSettings: Seq[Setting[_]] = Seq() ++ scalariformSettings ++ prefs ++
