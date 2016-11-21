@@ -244,3 +244,11 @@ c.toString() // => 0
 ```
 
 In this example `c.toString()` will always print `0`, even after calling `c.increment`.
+
+## Creating BigDecimal instances from float 
+
+name : **big-decimal-with-floating-point-type**
+source : [BigDecimalCreatedWithFloatingPointType](/rules/core/src/main/scala/com/typesafe/abide/core/BigDecimalCreatedWithFloatingPointType)
+
+Since floating points types has got limited precision it is a good idea to use BigDecimal
+but if creating instances from floats you will already have lost that precision.
