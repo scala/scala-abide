@@ -36,7 +36,7 @@ class InferAnyTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 
   it should "be valid if the argument is explicitly ascribed Any" in {
@@ -46,7 +46,7 @@ class InferAnyTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 
   it should "not be valid only once for case classes" in {

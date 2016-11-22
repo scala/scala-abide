@@ -28,7 +28,7 @@ class PackageObjectClassesTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 
   "Object definitions" should "not be valid if in a pacakge object" in {
@@ -49,6 +49,6 @@ class PackageObjectClassesTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 }

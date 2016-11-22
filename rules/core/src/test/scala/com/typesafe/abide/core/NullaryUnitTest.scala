@@ -16,7 +16,7 @@ class NullaryUnitTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 
   it should "not be valid when they return unit" in {
@@ -48,7 +48,7 @@ class NullaryUnitTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 
   it should "not be valid for each nullary method returning unit" in {
