@@ -244,3 +244,23 @@ c.toString() // => 0
 ```
 
 In this example `c.toString()` will always print `0`, even after calling `c.increment`.
+
+## Avoid accidental use of `Predef.synchronized` in Value Classes
+
+name : **value-class-synchronized**
+source : [ValueClassSynchronized](/rules/core/src/main/scala/com/typesafe/abide/core/ValueClassSynchronized.scala)
+
+User defined value classes extending `AnyVal` are not able to call `this.synchronized`. However, the common patten
+of writing `def foo = synchronized { ... } ` will still typecheck because of the automatic import of `Predef._`.
+
+
+```scala
+class Foo
+implicit class RichFoo(val self: Foo) extends AnyVal {
+  def sideEffect() = synchronized {
+    assert(Thread.holdsLock(Predef)) // probably unintended!
+  }
+}
+```
+
+Instead, use `self.synchronized { ... }` to lock on the wrapped object.
