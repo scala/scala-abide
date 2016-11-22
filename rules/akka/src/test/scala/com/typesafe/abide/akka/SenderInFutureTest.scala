@@ -1,7 +1,7 @@
-package com.typesafe.abide.akka
+package com.lightbend.abide.akka
 
 import scala.tools.abide.traversal._
-import com.typesafe.abide.akka._
+import com.lightbend.abide.akka._
 
 class SenderInFutureTest extends TraversalTest {
 

@@ -5,7 +5,7 @@ Style rules that apply to all (or most) Scala code and are (mostly) non-controve
 ## Unused local definitions
 
 name : **unused-member**
-source : [UnusedMember](/rules/core/src/main/scala/com/typesafe/abide/core/UnusedMember.scala)
+source : [UnusedMember](/rules/core/src/main/scala/com/lightbend/abide/core/UnusedMember.scala)
 
 Definitions that cannot be accessed outside of the current scope should _always_ be used in the current scope. If this is not the case, then these definitions shouldn't exist as they reduce code readability by bloating the current scope.
 
@@ -17,7 +17,7 @@ This rule applies to:
 ## Public mutable fields
 
 name : **public-mutable-fields**
-source : [PublicMutable](/rules/core/src/main/scala/com/typesafe/abide/core/PublicMutable.scala)
+source : [PublicMutable](/rules/core/src/main/scala/com/lightbend/abide/core/PublicMutable.scala)
 
 Class and objects shouldn't expose mutable values (or variables) through their public API, such members should be hidden behind a transformation API to ensure good behaviour.
 
@@ -29,14 +29,14 @@ Are considered invalid mutable fields:
 ## Renamed default parameters in override
 
 name : **renamed-default-parameter**
-source : [RenamedDefaultParameter](/rules/core/src/main/scala/com/typesafe/abide/core/RenamedDefaultParameter.scala)
+source : [RenamedDefaultParameter](/rules/core/src/main/scala/com/lightbend/abide/core/RenamedDefaultParameter.scala)
 
 Method arguments that have default values should _never_ have their names swapped when overriding the method as this can have extremely unexpected behaviour (see [ScalaPuzzlers](http://scalapuzzlers.com/#pzzlr-024)).
 
 ## Unexpected recursive definitions
 
 name : **stupid-recursion**
-source : [StupidRecursion](/rules/core/src/main/scala/com/typesafe/abide/core/StupidRecursion.scala)
+source : [StupidRecursion](/rules/core/src/main/scala/com/lightbend/abide/core/StupidRecursion.scala)
 
 Parameterless methods shouldn't be recursive as such code is unclear and requires atypical termination conditions. Typically, one would not write such code, but a common programming pattern is member delegation on trait (or abstract class) instantiation. If one doesn't prefix the delegated member with the correct scoping information, we get a recursive definition (which can be valid, yet unwanted, Scala code).
 
@@ -54,14 +54,14 @@ the `Container.with` method is valid Scala code but will generate a never-ending
 ## Variables that are never assigned
 
 name : **local-val-instead-of-var** and **member-val-instead-of-var**
-source : [ValInsteadOfVar](/rules/core/src/main/scala/com/typesafe/abide/core/ValInsteadOfVar.scala)
+source : [ValInsteadOfVar](/rules/core/src/main/scala/com/lightbend/abide/core/ValInsteadOfVar.scala)
 
 Private (or local) `var` definitions that have no assignment should actually be defined as `val` to clarify intent.
 
 ## Matching `Seq`-typed value with `::`
 
 name : **match-case-on-seq**
-source : [MatchCaseOnSeq](/rules/core/src/main/scala/com/typesafe/abide/core/MatchCaseOnSeq.scala)
+source : [MatchCaseOnSeq](/rules/core/src/main/scala/com/lightbend/abide/core/MatchCaseOnSeq.scala)
 
 When performing case matching, `Seq` typed scrutinees should not be deconstructed by `::` case statements since this reduces typing clarity. For example, the following snippet
 ```scala
@@ -81,7 +81,7 @@ should be written as
 ## Not checking if Traversables are empty or non empty by comparing their size
 
 name : **empty-nonempty-using-size**
-source [EmptyOrNonEmptyUsingSize](/rules/core/src/main/scala/com/typesafe/abide/core/EmptyOrNonEmptyUsingSize.scala)
+source [EmptyOrNonEmptyUsingSize](/rules/core/src/main/scala/com/lightbend/abide/core/EmptyOrNonEmptyUsingSize.scala)
 
 Comparing size to zero is bad because some subclasses of Traversable has got an expensive size/length calculation.
 isEmpty/nonEmpty are always O(1) so use that instead.
@@ -89,7 +89,7 @@ isEmpty/nonEmpty are always O(1) so use that instead.
 ## Avoiding by-name right-associative operators
 
 name : **by-name-right-associative**
-source : [ByNameRightAssociative](/rules/core/src/main/scala/com/typesafe/abide/core/ByNameRightAssociative.scala)
+source : [ByNameRightAssociative](/rules/core/src/main/scala/com/lightbend/abide/core/ByNameRightAssociative.scala)
 
 By-name arguments given to right-associative operators (those ending in `_:`)
 will be evaluated before the call to the operator rather than at the argument's use in the operator's body.
@@ -113,7 +113,7 @@ The user most likely expects that in both cases only "bar" will be printed.
 ## Avoiding class or object declarations inside package objects
 
 name : **package-object-classes**
-source : [PackageObjectClasses](/rules/core/src/main/scala/com/typesafe/abide/core/PackageObjectClasses.scala)
+source : [PackageObjectClasses](/rules/core/src/main/scala/com/lightbend/abide/core/PackageObjectClasses.scala)
 
 It is not recommended to define classes or objects inside of package objects,
 as they do not always work as expected.  See [SI-4344](https://issues.scala-lang.org/browse/SI-4344) for more details.
@@ -121,7 +121,7 @@ as they do not always work as expected.  See [SI-4344](https://issues.scala-lang
 ## Inferences of `Any` or `AnyVal`
 
 name : **infer-any**
-source : [InferAny](/rules/core/src/main/scala/com/typesafe/abide/core/InferAny.scala)
+source : [InferAny](/rules/core/src/main/scala/com/lightbend/abide/core/InferAny.scala)
 
 The Scala compiler will often infer `Any` as the parameter to a polymorphic
 method. This is generally not what is desired and can lead to errors such as
@@ -143,14 +143,14 @@ type explicitly:
 ## Avoiding nullary methods with `Unit` as their return type
 
 name : **nullary-unit**
-source : [NullaryUnit](/rules/core/src/main/scala/com/typesafe/abide/core/NullaryUnit.scala)
+source : [NullaryUnit](/rules/core/src/main/scala/com/lightbend/abide/core/NullaryUnit.scala)
 
 It is not recommended to define methods with side-effects which take no arguments, as it is easy to accidentally invoke those side-effects.
 
 ## Warn when type parameters shadow existing types
 
 name : **type-parameter-shadow**
-source : [TypeParameterShadow](/rules/core/src/main/scala/com/typesafe/abide/core/TypeParameterShadow.scala)
+source : [TypeParameterShadow](/rules/core/src/main/scala/com/lightbend/abide/core/TypeParameterShadow.scala)
 
 Declaring a type parameter with the same name as an existing type, such as `Byte`, will result in that type being shadowed. This leads to confusing errors where the type `Byte` is not actually `scala.Byte`:
 
@@ -163,7 +163,7 @@ The code above results in a type error because `String` is not `java.lang.String
 ## Avoid overloaded polymorphic implicit methods
 
 name : **poly-implicit-overload**
-source : [PolyImplicitOverload](/rules/core/src/main/scala/com/typesafe/abide/core/PolyImplicitOverload.scala)
+source : [PolyImplicitOverload](/rules/core/src/main/scala/com/lightbend/abide/core/PolyImplicitOverload.scala)
 
 Overloaded polymorphic implicit methods are not visible as view bounds and should therefore be avoided.  For example, the following will not compile because no implicit view is available from `List[Int]` to `Map[Int, Int]`:
 
@@ -179,7 +179,7 @@ f[List[Int]](List(3)) // No implicit view available!
 ## Usages of potentially inaccessible types
 
 name : **inaccessible**
-source : [Inaccessible](/rules/core/src/main/scala/com/typesafe/abide/core/Inaccessible.scala)
+source : [Inaccessible](/rules/core/src/main/scala/com/lightbend/abide/core/Inaccessible.scala)
 
 Referencing private types as part of a public interface can lead to methods
 being impossible to implement in certain cases. For example in the following
@@ -199,7 +199,7 @@ package foo {
 ## Avoid selection of fields from subclasses of `DelayedInit`
 
 name : **delayed-init-select**
-source : [DelayedInitSelect](/rules/core/src/main/scala/com/typesafe/abide/core/DelayedInitSelect.scala)
+source : [DelayedInitSelect](/rules/core/src/main/scala/com/lightbend/abide/core/DelayedInitSelect.scala)
 
 Selecting a field from a subclass of `DelayedInit` such as `App` will yield
 `null` if the object is not initialised, which can be confusing.
@@ -207,7 +207,7 @@ Selecting a field from a subclass of `DelayedInit` such as `App` will yield
 ## Avoiding overriding non-nullary methods with nullary methods
 
 name : **nullary-override**
-source : [NullaryOverride](/rules/core/src/main/scala/com/typesafe/abide/core/NullaryOverride.scala)
+source : [NullaryOverride](/rules/core/src/main/scala/com/lightbend/abide/core/NullaryOverride.scala)
 
 Providing a nullary override of a non-nullary method can lead to confusing
 errors and should be avoided. Consider for example:
@@ -225,7 +225,7 @@ Mixing in an additional trait causes previously correct code not to compile.
 ## Avoid shadowing mutable public fields with private fields
 
 name : **private-shadow**
-source : [PrivateShadow](/rules/core/src/main/scala/com/typesafe/abide/core/PrivateShadow.scala)
+source : [PrivateShadow](/rules/core/src/main/scala/com/lightbend/abide/core/PrivateShadow.scala)
 
 Default constructor arguments create private fields which will shadow parent fields with the same name. When the parent field is mutable this can cause unexpected behaviour:
 
@@ -248,7 +248,7 @@ In this example `c.toString()` will always print `0`, even after calling `c.incr
 ## Avoid accidental use of `Predef.synchronized` in Value Classes
 
 name : **value-class-synchronized**
-source : [ValueClassSynchronized](/rules/core/src/main/scala/com/typesafe/abide/core/ValueClassSynchronized.scala)
+source : [ValueClassSynchronized](/rules/core/src/main/scala/com/lightbend/abide/core/ValueClassSynchronized.scala)
 
 User defined value classes extending `AnyVal` are not able to call `this.synchronized`. However, the common patten
 of writing `def foo = synchronized { ... } ` will still typecheck because of the automatic import of `Predef._`.

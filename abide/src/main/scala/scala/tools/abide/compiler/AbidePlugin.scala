@@ -17,7 +17,7 @@ import scala.tools.abide.presentation._
  * The plugin accepts a series of abide-specific arguments (use as -P:abide:argName:argValue) :
  *
  *  - ruleClass :
- *      Specifies the full name of each rule that should be handled by the plugin (eg. com.typesafe.abide.samples.UnusedMember)
+ *      Specifies the full name of each rule that should be handled by the plugin (eg. com.lightbend.abide.samples.UnusedMember)
  *      This option can (and should) appear multiple times in the arguments array to specify all rules we're dealing with.
  *
  *  - analyzerClass :

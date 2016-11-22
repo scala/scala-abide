@@ -9,7 +9,7 @@ def nok(key : Key, warning : Warning) : Unit
 ```
 that will validate (`ok`), respectively invalidate (`nok`), these keys. The `Key` type remains an abstract member of the `ExistentialRule` type since different types of keys can be used in different concrete rules. Note that `nok` also takes a `Warning` argument that specifies the concrete warning that will be output by the rule if the associated key remains invalid after a full AST traversal.
 
-To showcase an `ExistentialRule` usage example, we will present a rule that checks that every private `var` member of a class is assigned somewhere in the class body (or it should be a `val`). Since we can't assume anything about declaration / assignment ordering, we use `ExistentialRule` as a base-trait and validate assignments while invalidating variable declarations. You can see the full source at [ValInsteadOfVar](/rules/core/src/main/scala/com/typesafe/abide/core/ValInsteadOfVar.scala).
+To showcase an `ExistentialRule` usage example, we will present a rule that checks that every private `var` member of a class is assigned somewhere in the class body (or it should be a `val`). Since we can't assume anything about declaration / assignment ordering, we use `ExistentialRule` as a base-trait and validate assignments while invalidating variable declarations. You can see the full source at [ValInsteadOfVar](/rules/core/src/main/scala/com/lightbend/abide/core/ValInsteadOfVar.scala).
 
 Let us start by defining the rule class:
 ```scala

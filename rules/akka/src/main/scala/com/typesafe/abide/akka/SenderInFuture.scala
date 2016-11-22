@@ -1,4 +1,4 @@
-package com.typesafe.abide.akka
+package com.lightbend.abide.akka
 
 import scala.tools.abide._
 import scala.tools.abide.traversal._

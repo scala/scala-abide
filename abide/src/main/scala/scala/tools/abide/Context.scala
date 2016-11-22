@@ -12,7 +12,7 @@ import scala.reflect.internal._
  * rule and instantiate the contexts accordingly.
  *
  * @see [[Context]]
- * @see com.typesafe.abide.sample.PublicMutable for a concrete example
+ * @see com.lightbend.abide.sample.PublicMutable for a concrete example
  */
 trait ContextGenerator {
   def getContext(universe: SymbolTable): Context

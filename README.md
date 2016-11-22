@@ -17,7 +17,7 @@ At this moment, **abide** has not been released. You need to run `sbt publishLoc
 Activate the sbt-abide plugin in both Scala 2.10 and 2.11 projects by extending your `project/plugin.sbt` file with
 
 ```scala
-addSbtPlugin("com.typesafe" % "sbt-abide" % "0.1-SNAPSHOT")
+addSbtPlugin("com.lightbend" % "sbt-abide" % "0.1-SNAPSHOT")
 ```
 > **abide** requires Sbt version 0.13.12 or later. Make sure you have a line like the following in `project/build.properties`
 
@@ -28,7 +28,7 @@ sbt.version=0.13.12
 Now you need to choose the rule libraries by adding the required jars to your dependencies in your project definitions (eg. `build.sbt`). Notice the `abide` configuration at the end of the line.
 
 ```scala
-libraryDependencies += "com.typesafe" %% "abide-core" % "0.1-SNAPSHOT" % "abide"
+libraryDependencies += "com.lightbend" %% "abide-core" % "0.1-SNAPSHOT" % "abide"
 ```
 
 One can also use sbt projects as rule libraries by using `dependsOn(rules % "abide")` in the project definition. This allows one to define project-specific rules!
@@ -37,16 +37,17 @@ This mode can run on Scala 2.10 projects by using the compiler `-Xsource:2.10` f
 the plugin), however one _must_ force the use of the **abide** libraries version built against Scala 2.11! You can do that by specifying the full cross-compiled name, instead of relying on the `%%` operator:
 
 ```scala
-libraryDependencies += "com.typesafe" % "abide-core_2.11" % "0.1-SNAPSHOT" % "abide"
+libraryDependencies += "com.lightbend" % "abide-core_2.11" % "0.1-SNAPSHOT" % "abide"
 ```
 
+To actually run abide, use the `abide` command within sbt.
 
 ### Compiler plugin
 
 **Abide** can be activated as a compiler plugin in **Scala 2.11** projects by extending the sbt build file with
 
 ```scala
-libraryDependencies += compilerPlugin("com.typesafe" %% "abide" % "0.1-SNAPSHOT")
+libraryDependencies += compilerPlugin("com.lightbend" %% "abide" % "0.1-SNAPSHOT")
 scalacOptions ++= Seq(
   "-P:abide:abidecp:<some.rules.classpath>",
   "-P:abide:ruleClass:<some.rule.Class>",
@@ -83,11 +84,11 @@ Note that this feature, as in the compiler plugin case, can only be used on **Sc
 
 The **abide** framework comes with a few pre-made rule packages that can be selectively enabled as discussed in the [previous section](#using-the-tool). The list of available packages along with the associated ivy dependency are:
 
-1. [rules/core](/wiki/core-rules.md) provided by `"com.typesafe" %% "abide-core" % "0.1-SNAPSHOT"`
+1. [rules/core](/wiki/core-rules.md) provided by `"com.lightbend" %% "abide-core" % "0.1-SNAPSHOT"`
 
-2. [rules/extra](/wiki/extra-rules.md) provided by `"com.typesafe" %% "abide-extra" % "0.1-SNAPSHOT"`
+2. [rules/extra](/wiki/extra-rules.md) provided by `"com.lightbend" %% "abide-extra" % "0.1-SNAPSHOT"`
 
-3. [rules/akka](/wiki/akka-rules.md) provided by `"com.typesafe" %% "abide-akka" % "0.1-SNAPSHOT"`
+3. [rules/akka](/wiki/akka-rules.md) provided by `"com.lightbend" %% "abide-akka" % "0.1-SNAPSHOT"`
 
 ## Extending abide
 
