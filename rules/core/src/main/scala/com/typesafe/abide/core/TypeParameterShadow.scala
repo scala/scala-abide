@@ -21,7 +21,7 @@ class TypeParameterShadow(val context: Context) extends ScopingRule {
   type Owner = Symbol
 
   // Any of the types in scala.Predef could be shadowed
-  val predefTypes = List("List", "Double", "Float", "Long", "Int", "Char", "Short", "Byte", "Unit", "Boolean") ++ scala.reflect.runtime.universe.typeOf[scala.Predef.type].declarations.filter(_.isType).map(_.name.toString)
+  val predefTypes = List("List", "Double", "Float", "Long", "Int", "Char", "Short", "Byte", "Unit", "Boolean") ++ scala.reflect.runtime.universe.typeOf[scala.Predef.type].decls.filter(_.isType).map(_.name.toString)
 
   def getDeclaration(tp: TypeDef, scope: List[Owner]) = scope.find { sym =>
     sym.name == tp.name && sym.isType
