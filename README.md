@@ -14,7 +14,7 @@ At this moment, **abide** has not been released. You need to run `sbt publishLoc
 
 ### sbt plugin
 
-Activate the sbt-abide plugin in both Scala 2.10 and 2.11 projects by extending your `project/plugin.sbt` file with
+Activate the sbt-abide plugin in a Scala 2.11 project by extending your `project/plugin.sbt` file with
 
 ```scala
 addSbtPlugin("com.lightbend" % "sbt-abide" % "0.1-SNAPSHOT")
@@ -33,18 +33,11 @@ libraryDependencies += "com.lightbend" %% "abide-core" % "0.1-SNAPSHOT" % "abide
 
 One can also use sbt projects as rule libraries by using `dependsOn(rules % "abide")` in the project definition. This allows one to define project-specific rules!
 
-This mode can run on Scala 2.10 projects by using the compiler `-Xsource:2.10` flag (automatically managed by
-the plugin), however one _must_ force the use of the **abide** libraries version built against Scala 2.11! You can do that by specifying the full cross-compiled name, instead of relying on the `%%` operator:
-
-```scala
-libraryDependencies += "com.lightbend" % "abide-core_2.11" % "0.1-SNAPSHOT" % "abide"
-```
-
 To actually run abide, use the `abide` command within sbt.
 
 ### Compiler plugin
 
-**Abide** can be activated as a compiler plugin in **Scala 2.11** projects by extending the sbt build file with
+**Abide** can be activated as a compiler plugin by extending the sbt build file with
 
 ```scala
 libraryDependencies += compilerPlugin("com.lightbend" %% "abide" % "0.1-SNAPSHOT")

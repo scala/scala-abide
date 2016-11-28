@@ -44,11 +44,6 @@ object AbideSbtPlugin extends AutoPlugin {
         Seq("-classpath", cpString)
       }
 
-      val compatibilityOpts: Seq[String] = CrossVersion.partialVersion((scalaVersion in Compile).value) match {
-        case Some((2, 10)) => Seq("-Xsource:2.10", "-Ymacro-expand:none")
-        case _             => Seq.empty
-      }
-
       val sourcePaths: Seq[String] = (sources in Compile).value.map(_.getAbsolutePath)
 
       if (sourcePaths.filter(_.endsWith(".scala")).nonEmpty) {
@@ -81,7 +76,7 @@ object AbideSbtPlugin extends AutoPlugin {
         val analyzerOpts = analyzerClasses.map(cls => "-P:abide:analyzerClass:" + cls)
         val presenterOpts = presenterClasses.map(cls => "-P:abide:presenterClass:" + cls)
 
-        val options = cpOpts ++ ruleOpts ++ analyzerOpts ++ presenterOpts ++ compatibilityOpts ++ sourcePaths
+        val options = cpOpts ++ ruleOpts ++ analyzerOpts ++ presenterOpts ++ sourcePaths
 
         streams.value.log.debug(options.mkString("\n"))
 
