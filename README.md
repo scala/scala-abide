@@ -4,6 +4,12 @@
 **Abide** rules are designed as small, self-contained units of logic which abstract concerns such as traversal and
 optimization away from the rule writter.
 
+## Compatibility
+
+sbt 0.13.12 or later is required. (0.13.13 or later is recommended.)
+
+Scala 2.11 and 2.12 are supported.
+
 ## Using the tool
 
 **Abide** is only available for sbt (and command line) for now, but will be ported to a ScalaIDE plugin and possibly to maven/gradle/etc as well. To add **abide** verification to an sbt project, three different options are available :
@@ -14,15 +20,10 @@ At this moment, **abide** has not been released. You need to run `sbt publishLoc
 
 ### sbt plugin
 
-Activate the sbt-abide plugin in a Scala 2.11 project by extending your `project/plugin.sbt` file with
+Activate the sbt-abide plugin by adding this to your `project/plugins.sbt` file:
 
 ```scala
 addSbtPlugin("com.lightbend" % "sbt-abide" % "0.1-SNAPSHOT")
-```
-> **abide** requires Sbt version 0.13.12 or later. Make sure you have a line like the following in `project/build.properties`
-
-```
-sbt.version=0.13.12
 ```
 
 Now you need to choose the rule libraries by adding the required jars to your dependencies in your project definitions (eg. `build.sbt`). Notice the `abide` configuration at the end of the line.
@@ -70,8 +71,6 @@ scalac -Xplugin:<path/to/abide.jar>                            \
        -P:abide:presenterClass:<some.presenter.generator.Module> \
        ...
 ```
-
-Note that this feature, as in the compiler plugin case, can only be used on **Scala 2.11** projects.
 
 ## Existing plugins
 
