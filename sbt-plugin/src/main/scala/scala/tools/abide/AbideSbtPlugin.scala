@@ -30,7 +30,7 @@ object AbideSbtPlugin extends AutoPlugin {
   private lazy val abideSettings: Seq[sbt.Def.Setting[_]] = Seq(
     ivyConfigurations += AbideConfig,
     libraryDependencies ++= Seq(
-      "com.typesafe" % abideBinaryVersion((scalaVersion in Compile).value) % "0.1-SNAPSHOT" % AbideConfig.name,
+      "com.lightbend" % abideBinaryVersion((scalaVersion in Compile).value) % "0.1-SNAPSHOT" % AbideConfig.name,
       "org.scala-lang" % "scala-compiler" % abideScalaVersion((scalaVersion in Compile).value) % AbideConfig.name,
       "org.scala-lang" % "scala-library" % abideScalaVersion((scalaVersion in Compile).value) % AbideConfig.name,
       "org.scala-lang" % "scala-reflect" % abideScalaVersion((scalaVersion in Compile).value) % AbideConfig.name

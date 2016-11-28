@@ -1,6 +1,6 @@
 # Writing Warning Rules
 
-Let us illustrate the `WarningRule` base-trait by writing a rule that makes sure overrides don't change argument names (see [FixedNameOverrides](/rules/extra/src/main/scala/com/typesafe/abide/extra/FixedNameOverrides.scala) for the full source). Since the typing phase will provide us with symbols for all definitions that a particular member overrides, we only need local information to verify whether a definition is valid or not, and we can verify the rule in a single pass through the program AST. Therefore, the `WarningRule` trait is exactly what we need!
+Let us illustrate the `WarningRule` base-trait by writing a rule that makes sure overrides don't change argument names (see [FixedNameOverrides](/rules/extra/src/main/scala/com/lightbend/abide/extra/FixedNameOverrides.scala) for the full source). Since the typing phase will provide us with symbols for all definitions that a particular member overrides, we only need local information to verify whether a definition is valid or not, and we can verify the rule in a single pass through the program AST. Therefore, the `WarningRule` trait is exactly what we need!
 
 The `WarningRule` trait defines a `State` type that simply accumulates warnings. These warnings are added to the state by invoking the `nok(warning : Warning) : Unit` helper provided by the `WarningRule trait. This is pretty much the simplest way possible of generating warnings during a traversal.
 

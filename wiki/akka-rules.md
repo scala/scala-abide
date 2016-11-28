@@ -11,7 +11,7 @@ TODO: this requirement should be made more flexible by people who know more abou
 ## Sender method called in deferred block
 
 name : **sender-in-future**  
-source : [SenderInFuture](/rules/akka/src/main/scala/com/typesafe/abide/akka/SenderInFuture.scala)
+source : [SenderInFuture](/rules/akka/src/main/scala/com/lightbend/abide/akka/SenderInFuture.scala)
 
 The `sender()` method should _never_ be called inside of a code block that won't be executed immediately in the `receive` method since the resulting sender might not be the right one anymore when the deferred code is actually executed. For example, the code
 ```scala

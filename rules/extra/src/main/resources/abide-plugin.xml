@@ -1,4 +1,4 @@
 <plugin>
-  <rule class="com.typesafe.abide.extra.FixedNameOverrides" />
-  <rule class="com.typesafe.abide.extra.InstanceOfUsed" />
+  <rule class="com.lightbend.abide.extra.FixedNameOverrides" />
+  <rule class="com.lightbend.abide.extra.InstanceOfUsed" />
 </plugin>

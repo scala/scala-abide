@@ -1,4 +1,4 @@
-package com.typesafe.abide.extra
+package com.lightbend.abide.extra
 
 import scala.tools.abide.traversal.TraversalTest
 

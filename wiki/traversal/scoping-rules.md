@@ -9,7 +9,7 @@ will add `owner` to the scoping stack and the `state` provider can be queried to
 def in(owner : Onwer) : Boolean
 ```
 
-To illustrate `ScopingRule` usage, we will implement a recursive method definition checker that searches for weird definitions that point to themselves (see the full source at [StupidRecursion](/rules/core/src/main/scala/com/typesafe/abide/core/StupidRecursion.scala)).
+To illustrate `ScopingRule` usage, we will implement a recursive method definition checker that searches for weird definitions that point to themselves (see the full source at [StupidRecursion](/rules/core/src/main/scala/com/lightbend/abide/core/StupidRecursion.scala)).
 
 We start by defining the rule class:
 ```scala
