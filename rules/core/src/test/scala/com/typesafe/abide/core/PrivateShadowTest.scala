@@ -60,6 +60,6 @@ class PrivateShadowTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 }

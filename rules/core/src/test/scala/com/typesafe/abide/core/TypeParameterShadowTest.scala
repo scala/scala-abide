@@ -35,7 +35,7 @@ class TypeParameterShadowTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 
   "Type member type parameter" should "not be valid if it shadows another type" in {
@@ -66,7 +66,7 @@ class TypeParameterShadowTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 
   "Class type parameter" should "not be valid if it shadows another type" in {
@@ -95,7 +95,7 @@ class TypeParameterShadowTest extends TraversalTest {
       class F[A, M[L[A]]] // no warn
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 
   it should "not be valid if the parameter's name is List" in {

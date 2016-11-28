@@ -24,7 +24,7 @@ class ValueClassSynchronizedTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 
   it should "be valid outside of value class" in {
@@ -34,7 +34,7 @@ class ValueClassSynchronizedTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 
   it should "be valid in class nested in value class" in {
@@ -44,7 +44,7 @@ class ValueClassSynchronizedTest extends TraversalTest {
       }
     """)
 
-    global.ask { () => apply(rule)(tree).size should be(0) }
+    global.ask { () => apply(rule)(tree) shouldBe empty }
   }
 
 }
