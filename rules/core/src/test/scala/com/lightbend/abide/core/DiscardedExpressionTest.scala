@@ -1,5 +1,6 @@
 package com.lightbend.abide.core
 
+import scala.tools.abide.AbideTest
 import scala.tools.abide.traversal._
 
 class DiscardedExpressionTest extends TraversalTest {

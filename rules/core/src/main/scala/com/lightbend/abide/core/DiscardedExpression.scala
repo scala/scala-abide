@@ -3,7 +3,7 @@ package com.lightbend.abide.core
 import scala.tools.abide._
 import scala.tools.abide.traversal._
 
-class DiscardedExpression(val context: Context) extends ExistentialRule {
+class DiscardedExpression(val context: Context) extends WarningRule {
   import context.universe._
 
   val name = "discarded-expression"
@@ -24,7 +24,7 @@ class DiscardedExpression(val context: Context) extends ExistentialRule {
       }
 
       discarded.foreach { exp =>
-        nok(exp.symbol, Warning(exp))
+        nok(Warning(exp))
       }
   }
 }
